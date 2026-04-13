@@ -1,7 +1,7 @@
 'use client';
 import { useAppState } from '@/hooks/useAppState';
 import { StreakBadge } from '@/components/ui/StreakBadge';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { getTodayDateString } from '@/lib/tasks';
 import { Crown } from 'lucide-react';
 
@@ -49,12 +49,12 @@ export default function StreakPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+      <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-white">Statistieken</h1>
         <p className="text-white/40 text-sm mt-1">Jouw voortgang in alle domeinen</p>
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
@@ -65,7 +65,7 @@ export default function StreakPage() {
           <div className="flex items-center gap-2 mb-4 text-orange-300 font-bold tracking-widest uppercase text-sm">
             <Crown size={18} /> Ultimate Streak
           </div>
-          <motion.div
+          <m.div
             animate={state.streaks.ultimate.currentStreak > 0 ? {
               scale: [1, 1.05, 1],
               filter: ['brightness(1)', 'brightness(1.2)', 'brightness(1)'],
@@ -74,7 +74,7 @@ export default function StreakPage() {
             className="text-7xl mb-2"
           >
             {state.streaks.ultimate.currentStreak > 0 ? '👑' : '💤'}
-          </motion.div>
+          </m.div>
           <div className="text-6xl font-black bg-gradient-to-b from-yellow-200 to-orange-500 bg-clip-text text-transparent mb-1">
             {state.streaks.ultimate.currentStreak}
           </div>
@@ -84,13 +84,13 @@ export default function StreakPage() {
             Record: {state.streaks.ultimate.longestStreak} dagen
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-center font-bold text-lg">
+      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-center font-bold text-lg">
         <p className={motivation.color}>{motivation.msg}</p>
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -107,7 +107,7 @@ export default function StreakPage() {
           ].map((s, i) => {
             const current = state.streaks[s.tag as keyof typeof state.streaks].currentStreak;
             return (
-              <motion.div
+              <m.div
                 key={s.tag}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -119,13 +119,13 @@ export default function StreakPage() {
                   {current}
                 </div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40 mt-1">{s.label}</div>
-              </motion.div>
+              </m.div>
             )
           })}
         </div>
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
@@ -139,7 +139,7 @@ export default function StreakPage() {
             const completed = state.streaks.ultimate.history[date];
             const isFuture = date > today;
             return (
-              <motion.div
+              <m.div
                 key={date}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -164,11 +164,11 @@ export default function StreakPage() {
                 {isToday && (
                   <div className="w-1 h-1 rounded-full bg-orange-400 mt-1" />
                 )}
-              </motion.div>
+              </m.div>
             );
           })}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

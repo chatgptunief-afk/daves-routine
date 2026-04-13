@@ -116,14 +116,16 @@ export function useAppState() {
     });
   }, [updateState]);
 
-  // Soul Coins: buy streak freeze (50 coins)
+  // Soul Coins: buy streak freeze (50 coins, max 3)
   const buyFreeze = useCallback(() => {
     updateState(prev => {
+      const currentFreezes = prev.freezes ?? 0;
+      if (currentFreezes >= 3) return prev;
       if ((prev.soulCoins ?? 0) < 50) return prev;
       return {
         ...prev,
         soulCoins: prev.soulCoins - 50,
-        freezes: (prev.freezes ?? 0) + 1,
+        freezes: currentFreezes + 1,
       };
     });
   }, [updateState]);

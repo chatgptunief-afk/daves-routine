@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { ProgressRing } from '@/components/ui/ProgressRing';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Crown, BellRing, Coins } from 'lucide-react';
 import { TaskCard } from '@/components/ui/TaskCard';
 import { DailyCheckin } from '@/components/ui/DailyCheckin';
@@ -90,12 +90,12 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start pt-2">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-white/40 text-sm font-medium">{getDateLabel()}</p>
             <h1 className="text-2xl font-bold text-white mt-0.5">
               {greeting.emoji} {greeting.text}, {state.userName}
             </h1>
-          </motion.div>
+          </m.div>
 
           <div className="flex items-center gap-2">
             {/* Soul coin display */}
@@ -106,7 +106,7 @@ export default function DashboardPage() {
               </div>
               <AnimatePresence>
                 {showCoinToast && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 0, scale: 0.8 }}
                     animate={{ opacity: 1, y: -25, scale: 1 }}
                     exit={{ opacity: 0, y: -40 }}
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                     className="absolute top-0 left-1/2 -translate-x-1/2 text-yellow-300 font-black text-sm whitespace-nowrap drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] pointer-events-none"
                   >
                     +1 🪙
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Ultimate Streak */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
@@ -149,17 +149,17 @@ export default function DashboardPage() {
               <p className="text-sky-300/60 text-[10px] mt-1">🧊 {state.freezes} freeze{state.freezes > 1 ? 's' : ''} actief</p>
             )}
           </div>
-          <motion.div
+          <m.div
             animate={state.streaks.ultimate.currentStreak > 0 ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
             transition={{ duration: 3, repeat: Infinity }}
             className="text-6xl drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]"
           >
             {state.streaks.ultimate.currentStreak > 0 ? '👑' : '💤'}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
 
         {/* Sub-streaks */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
@@ -180,10 +180,10 @@ export default function DashboardPage() {
             <span className="text-xl font-bold">{state.streaks.cleansoul.currentStreak}</span>
             <span className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">Clean Soul</span>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Progress ring */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -198,11 +198,25 @@ export default function DashboardPage() {
             <p className="text-white/50 text-sm">{completedCount} van de {totalCount} voltooid</p>
           </div>
           <ProgressRing percentage={completionPct} size={70} strokeWidth={6} label={`${completionPct}%`} />
-        </motion.div>
+        </m.div>
+
+        {/* Empty Blueprint State */}
+        {state.taskBlueprint.length === 0 && (
+          <m.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25 }}
+            className="border border-white/10 bg-white/[0.04] rounded-3xl p-6 text-center"
+          >
+            <div className="text-4xl mb-3">🌱</div>
+            <h3 className="text-white font-bold text-lg mb-1">Klaar voor een nieuwe start?</h3>
+            <p className="text-white/50 text-sm">Je hebt nog geen taken ingesteld. Ga naar je Profiel om je Routine te bouwen.</p>
+          </m.div>
+        )}
 
         {/* Quick tasks + Frog */}
-        {!allDone && (frogTask || quickTasksBase.length > 0) && (
-          <motion.div
+        {!allDone && state.taskBlueprint.length > 0 && (frogTask || quickTasksBase.length > 0) && (
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -220,11 +234,11 @@ export default function DashboardPage() {
                 <TaskCard key={task.id} task={task} onToggle={toggleTask} />
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Category mini-bars */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -243,7 +257,7 @@ export default function DashboardPage() {
                 <div className={`${color} flex justify-center mb-1 text-sm`}>{icon}</div>
                 <div className="text-white font-bold text-xs">{done}/{tasks.length}</div>
                 <div className="mt-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
+                  <m.div
                     className={`h-full rounded-full ${pct === 100 ? 'bg-green-500' : 'bg-violet-500'}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
@@ -253,7 +267,7 @@ export default function DashboardPage() {
               </div>
             );
           })}
-        </motion.div>
+        </m.div>
       </div>
     </>
   );

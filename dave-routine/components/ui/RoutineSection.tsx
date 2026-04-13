@@ -1,5 +1,5 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Task } from '@/types';
 import { TaskCard } from './TaskCard';
 import { ChevronDown } from 'lucide-react';
@@ -32,7 +32,7 @@ export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, def
           <h2 className="font-bold text-white text-base">{title}</h2>
           <div className="flex items-center gap-2 mt-1">
             <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
-              <motion.div
+              <m.div
                 className={`h-full rounded-full ${accentColor}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
@@ -42,18 +42,18 @@ export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, def
             <span className="text-xs text-white/50 flex-shrink-0">{completed}/{total}</span>
           </div>
         </div>
-        <motion.div
+        <m.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
           <ChevronDown size={18} className="text-white/40" />
-        </motion.div>
+        </m.div>
       </button>
 
       {/* Tasks */}
       <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -65,7 +65,7 @@ export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, def
                 <TaskCard key={task.id} task={task} onToggle={onToggle} />
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

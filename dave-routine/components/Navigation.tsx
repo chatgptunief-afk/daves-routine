@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ListChecks, Flame, Map, Settings } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,7 +29,7 @@ export function Navigation() {
                   className="relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl flex-1 text-center min-w-[60px]"
                 >
                   {isActive && (
-                    <motion.div
+                    <m.div
                       layoutId="nav-indicator"
                       className="absolute inset-0 bg-violet-500/20 border border-violet-500/30 rounded-xl"
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}

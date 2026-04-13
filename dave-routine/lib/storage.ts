@@ -37,45 +37,76 @@ export function getDefaultState(): AppState {
 
 export async function loadState(): Promise<AppState> {
   if (typeof window === 'undefined') return getDefaultState();
+
+  let state: AppState | null = null;
+  
+  // 1. Try to read from IndexedDB safely
   try {
-    let state: AppState | null = null;
-    
-    // 1. Try to read from IndexedDB
     const idbRaw = await get<AppState>(STORAGE_KEY);
-    if (idbRaw) {
-      state = idbRaw;
-    } else {
-      // 2. Fallback to localStorage (Migration)
+    if (idbRaw) state = idbRaw;
+  } catch (e) {
+    // IDB might be blocked in some private browsing modes
+  }
+
+  // 2. Fallback to localStorage if IDB failed or was empty
+  if (!state) {
+    try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         state = JSON.parse(raw);
-        // Save to IndexedDB for next time
-        await set(STORAGE_KEY, state);
+        // Save to IndexedDB for next time, but catch silently
+        try { await set(STORAGE_KEY, state); } catch {}
       }
+    } catch (e) {
+      // LocalStorage read failed
     }
+  }
 
-    if (!state) return migrateLegacyState();
-    
-    // Safety checks for missing fields
-    if (!state.userName) state.userName = 'Dave';
-    if (!state.taskBlueprint) state.taskBlueprint = getInitialTasks();
-    if (state.soulCoins === undefined) state.soulCoins = 0;
-    if (state.freezes === undefined) state.freezes = 0;
-    if (!state.categoryXP) state.categoryXP = {};
-    if (state.frogTaskId === undefined) state.frogTaskId = null;
-    if (state.lastCheckinDate === undefined) state.lastCheckinDate = null;
+  if (!state) state = migrateLegacyState();
+  
+  // 3. Structural Validation (prevent undefined crashes)
+  if (!state.userName) state.userName = 'Dave';
+  if (!Array.isArray(state.taskBlueprint)) state.taskBlueprint = getInitialTasks();
+  if (!Array.isArray(state.todayTasks)) state.todayTasks = state.taskBlueprint;
+  if (state.soulCoins === undefined || typeof state.soulCoins !== 'number') state.soulCoins = 0;
+  if (state.freezes === undefined || typeof state.freezes !== 'number') state.freezes = 0;
+  if (!state.categoryXP || typeof state.categoryXP !== 'object') state.categoryXP = {};
+  if (state.frogTaskId === undefined) state.frogTaskId = null;
+  if (state.lastCheckinDate === undefined) state.lastCheckinDate = null;
 
+  // Validate streaks structure
+  if (!state.streaks || typeof state.streaks !== 'object') {
+    state.streaks = {
+      routine: createEmptySingleStreak(),
+      prayer: createEmptySingleStreak(),
+      cleansoul: createEmptySingleStreak(),
+      ultimate: createEmptySingleStreak(),
+    };
+  } else {
+    ['routine', 'prayer', 'cleansoul', 'ultimate'].forEach(key => {
+      const k = key as keyof StreakData;
+      if (!state!.streaks[k]) {
+        state!.streaks[k] = createEmptySingleStreak();
+      } else {
+        if (typeof state!.streaks[k].currentStreak !== 'number') state!.streaks[k].currentStreak = 0;
+        if (typeof state!.streaks[k].longestStreak !== 'number') state!.streaks[k].longestStreak = 0;
+        if (!state!.streaks[k].history) state!.streaks[k].history = {};
+      }
+    });
+  }
+
+  if (!state.lastResetDate) {
+    state.lastResetDate = getTodayDateString();
+  } else {
     const today = getTodayDateString();
     if (state.lastResetDate !== today) {
       const resetState = resetDayTasks(state, today);
-      await set(STORAGE_KEY, resetState);
+      saveState(resetState).catch(() => {});
       return resetState;
     }
-    return state;
-  } catch (e) {
-    console.error('Failed to load state from idb', e);
-    return getDefaultState();
   }
+
+  return state;
 }
 
 function migrateLegacyState(): AppState {
@@ -155,14 +186,13 @@ function migrateLegacyState(): AppState {
 
 export async function saveState(state: AppState): Promise<void> {
   if (typeof window === 'undefined') return;
+  // Persist safely, ignoring quota/private mode errors to prevent thread blocking
   try {
-    // Keep a backup in localstorage just in case
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    // Persist primarily to IndexedDB
+  } catch (e) {}
+  try {
     await set(STORAGE_KEY, state);
-  } catch (e) {
-    console.error('Failed to save state to idb', e);
-  }
+  } catch (e) {}
 }
 
 function getNextDaySafe(dateStr: string): string {

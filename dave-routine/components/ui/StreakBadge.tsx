@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 interface StreakBadgeProps {
   currentStreak: number;
@@ -13,7 +13,7 @@ export function StreakBadge({ currentStreak, longestStreak }: StreakBadgeProps) 
     <div className="flex flex-col items-center gap-6">
       {/* Main Flame */}
       <div className="relative flex flex-col items-center">
-        <motion.div
+        <m.div
           animate={isActive ? {
             scale: [1, 1.05, 1],
             filter: ['brightness(1)', 'brightness(1.3)', 'brightness(1)'],
@@ -22,11 +22,11 @@ export function StreakBadge({ currentStreak, longestStreak }: StreakBadgeProps) 
           className="text-7xl leading-none"
         >
           {isActive ? '🔥' : '💤'}
-        </motion.div>
+        </m.div>
 
         {/* Glow behind flame */}
         {isActive && (
-          <motion.div
+          <m.div
             className="absolute inset-0 rounded-full blur-2xl bg-orange-500/30 -z-10"
             animate={{ opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -36,14 +36,14 @@ export function StreakBadge({ currentStreak, longestStreak }: StreakBadgeProps) 
 
       {/* Streak Number */}
       <div className="text-center">
-        <motion.div
+        <m.div
           key={currentStreak}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="text-6xl font-black bg-gradient-to-b from-orange-300 to-orange-600 bg-clip-text text-transparent"
         >
           {currentStreak}
-        </motion.div>
+        </m.div>
         <p className="text-white/50 text-sm mt-1 font-medium">
           dag{currentStreak !== 1 ? 'en' : ''} op rij
         </p>

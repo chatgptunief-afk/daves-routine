@@ -1,5 +1,5 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Task } from '@/types';
 import { Check } from 'lucide-react';
 import { useState, useCallback } from 'react';
@@ -20,7 +20,7 @@ function GoldenBurst() {
         const x = Math.cos((angle * Math.PI) / 180) * 40;
         const y = Math.sin((angle * Math.PI) / 180) * 40;
         return (
-          <motion.div
+          <m.div
             key={i}
             className="absolute w-1.5 h-1.5 rounded-full bg-yellow-400"
             style={{ top: '50%', left: '50%', marginTop: -3, marginLeft: -3 }}
@@ -51,7 +51,7 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
   }, [task.completed, task.id, onToggle]);
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -69,13 +69,13 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
     >
       {/* Frog badge */}
       {isFrog && (
-        <motion.div
+        <m.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           className="absolute -top-2 -left-2 text-sm leading-none bg-amber-500 rounded-full w-6 h-6 flex items-center justify-center shadow-lg shadow-amber-500/40 z-10"
         >
           🐸
-        </motion.div>
+        </m.div>
       )}
 
       {/* Golden burst on completion */}
@@ -84,7 +84,7 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
       </AnimatePresence>
 
       {/* Checkbox */}
-      <motion.div
+      <m.div
         animate={showBurst ? { scale: [1, 1.4, 1], rotate: [0, 15, -15, 0] } : {}}
         transition={{ duration: 0.4 }}
         className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-300
@@ -94,15 +94,15 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
           }`}
       >
         {task.completed && (
-          <motion.div
+          <m.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 500, damping: 25 }}
           >
             <Check size={14} className="text-white" strokeWidth={3} />
-          </motion.div>
+          </m.div>
         )}
-      </motion.div>
+      </m.div>
 
       {/* Icon + Text */}
       <span className="text-2xl flex-shrink-0">{task.icon}</span>
@@ -124,12 +124,12 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
 
       {/* Completion glow overlay */}
       {task.completed && (
-        <motion.div
+        <m.div
           className={`absolute inset-0 rounded-2xl pointer-events-none ${isFrog ? 'bg-amber-500/5' : 'bg-violet-500/5'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         />
       )}
-    </motion.div>
+    </m.div>
   );
 }

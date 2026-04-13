@@ -1,5 +1,5 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 
 interface SoulVisualizationProps {
   routineStreak: number;
@@ -53,7 +53,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
       {/* ─── BACKGROUND: Stars / Aurora / God Light ─── */}
       <AnimatePresence>
         {showStars && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.35 }}
             className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none"
@@ -64,7 +64,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
       {/* Aurora for 40+ prayer days */}
       <AnimatePresence>
         {showAurora && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.4, 0.7, 0.4] }}
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
@@ -77,7 +77,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
       {/* God Light for 50 prayer days */}
       <AnimatePresence>
         {showGodLight && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.5, 0.9, 0.5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -90,7 +90,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
       {/* Ambient light glow (prayer 20+) */}
       <AnimatePresence>
         {showPureLight && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -106,7 +106,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
         {/* Water pool */}
         <AnimatePresence>
           {showWater && (
-            <motion.div
+            <m.div
               initial={{ scaleX: 0, opacity: 0 }}
               animate={{ scaleX: 1, opacity: showHeavenly ? 1 : 0.7 }}
               className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full"
@@ -126,7 +126,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
         {/* Garden base */}
         <AnimatePresence>
           {showSprouts && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="w-full h-16 rounded-[100%] blur-sm relative z-0"
@@ -165,15 +165,15 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
               {showFlowers && !showEternal && (
                 <div className="absolute right-1/4 -top-4 text-2xl opacity-90">🪑</div>
               )}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
 
       {/* ─── HOUSE (Routine) ─── */}
-      <motion.div layout className="relative z-10 flex items-center justify-center -mt-8">
+      <m.div layout className="relative z-10 flex items-center justify-center -mt-8">
         <AnimatePresence mode="popLayout">
-          <motion.div
+          <m.div
             key={houseEmoji}
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -184,12 +184,12 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
             <span style={{ filter: `drop-shadow(0 0 ${isPalace ? 40 : isCastle ? 25 : 15}px ${glowColor})` }}>
               {houseEmoji}
             </span>
-          </motion.div>
+          </m.div>
         </AnimatePresence>
 
         {/* Palace golden sparkles */}
         {isPalace && (
-          <motion.div
+          <m.div
             animate={{ rotate: 360 }}
             transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
             className="absolute inset-[-20px] z-[-1]"
@@ -206,13 +206,13 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
                 }}
               >{s}</span>
             ))}
-          </motion.div>
+          </m.div>
         )}
 
         {/* Aura around house (prayer 10+) */}
         <AnimatePresence>
           {showAura && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: [0.4, 0.7, 0.4] }}
               transition={{ duration: 3, repeat: Infinity }}
@@ -224,12 +224,12 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
             />
           )}
         </AnimatePresence>
-      </motion.div>
+      </m.div>
 
       {/* ─── STREET LEVEL DETAILS (Prayer) ─── */}
       <AnimatePresence>
         {showLanterns && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
@@ -237,10 +237,10 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
             style={{ filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.6))' }}
           >
             🏮
-          </motion.div>
+          </m.div>
         )}
         {showAura && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
@@ -248,20 +248,20 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
             style={{ filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.5))' }}
           >
             🕯️
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Palace: floating crown */}
       {isPalace && (
-        <motion.div
+        <m.div
           animate={{ y: [-4, 4, -4] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute top-6 left-1/2 -translate-x-1/2 text-4xl z-20"
           style={{ filter: 'drop-shadow(0 0 15px rgba(251,191,36,0.8))' }}
         >
           👑
-        </motion.div>
+        </m.div>
       )}
 
       {/* Inset frame */}

@@ -1,5 +1,5 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 
 interface DailyCheckinProps {
   show: boolean;
@@ -11,7 +11,7 @@ export function DailyCheckin({ show, userName, onDone }: DailyCheckinProps) {
   return (
     <AnimatePresence>
       {show && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -23,7 +23,7 @@ export function DailyCheckin({ show, userName, onDone }: DailyCheckinProps) {
             {/* Pulsing rings */}
             <div className="relative flex items-center justify-center">
               {[1, 2, 3].map(i => (
-                <motion.div
+                <m.div
                   key={i}
                   className="absolute rounded-full border border-violet-500/30"
                   animate={{ scale: [1, 1.5 + i * 0.3], opacity: [0.5, 0] }}
@@ -37,17 +37,17 @@ export function DailyCheckin({ show, userName, onDone }: DailyCheckinProps) {
                 />
               ))}
               {/* Core circle */}
-              <motion.div
+              <m.div
                 animate={{ scale: [1, 1.08, 1] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow-[0_0_40px_rgba(124,58,237,0.4)]"
               >
                 <span className="text-3xl">🌙</span>
-              </motion.div>
+              </m.div>
             </div>
 
             {/* Text */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -62,10 +62,10 @@ export function DailyCheckin({ show, userName, onDone }: DailyCheckinProps) {
               <p className="text-white/40 text-sm leading-relaxed max-w-[260px]">
                 Begin de dag bewust. Haal diep adem voordat je je taken ziet.
               </p>
-            </motion.div>
+            </m.div>
 
             {/* Continue button */}
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
@@ -74,11 +74,11 @@ export function DailyCheckin({ show, userName, onDone }: DailyCheckinProps) {
               className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-8 py-3 rounded-2xl transition-colors shadow-lg shadow-violet-900/40"
             >
               Ik ben klaar — Begin de dag 🌅
-            </motion.button>
+            </m.button>
 
             <p className="text-white/20 text-xs">Tik overal om door te gaan</p>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

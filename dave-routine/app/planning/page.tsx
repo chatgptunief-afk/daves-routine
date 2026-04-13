@@ -1,7 +1,7 @@
 'use client';
 import { useAppState } from '@/hooks/useAppState';
 import { RoutineSection } from '@/components/ui/RoutineSection';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 export default function PlanningPage() {
   const { isLoaded, state, toggleTask, morningTasks, dailyTasks, eveningTasks, prayerTasks, cleanSoulTasks, completedCount, totalCount } = useAppState();
@@ -16,23 +16,23 @@ export default function PlanningPage() {
 
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+      <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-white">Planning & Doelen</h1>
         <p className="text-white/40 text-sm mt-1">{completedCount} van {totalCount} taken voltooid vandaag</p>
-      </motion.div>
+      </m.div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
         <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-          <motion.div
+          <m.div
             className="h-full bg-gradient-to-r from-violet-500 to-purple-400 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
             transition={{ duration: 0.8 }}
           />
         </div>
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
@@ -78,16 +78,16 @@ export default function PlanningPage() {
           accentColor="bg-teal-400"
           defaultOpen={true}
         />
-      </motion.div>
+      </m.div>
 
-      <motion.p
+      <m.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
         className="text-center text-white/20 text-xs pb-4"
       >
         ↺ Taken resetten automatisch om middernacht
-      </motion.p>
+      </m.p>
     </div>
   );
 }

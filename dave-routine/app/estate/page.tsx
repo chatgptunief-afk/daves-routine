@@ -2,7 +2,7 @@
 import { useAppState } from '@/hooks/useAppState';
 import { ROUTINE_LEVELS, PRAYER_LEVELS, CLEAN_SOUL_LEVELS, getCurrentLevel, getNextLevel } from '@/lib/estate';
 import { SoulVisualization } from '@/components/ui/SoulVisualization';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Sparkles, ArrowUpCircle, Trophy } from 'lucide-react';
 
 export default function EstatePage() {
@@ -66,15 +66,15 @@ export default function EstatePage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+      <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           <Sparkles className="text-amber-400" /> Soul Estate
         </h1>
         <p className="text-white/60 text-sm mt-1">Jouw discipline bouwt deze wereld — 50 dagen voor het Gouden Paleis</p>
-      </motion.div>
+      </m.div>
 
       {/* Visual Representation */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1, duration: 0.8, ease: 'easeOut' }}
@@ -84,11 +84,11 @@ export default function EstatePage() {
           prayerStreak={pStreak}
           cleanSoulStreak={cStreak}
         />
-      </motion.div>
+      </m.div>
 
       {/* MAX LEVEL celebration */}
       {isMaxAll && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-gradient-to-br from-yellow-500/20 to-amber-600/20 border border-yellow-500/30 rounded-3xl p-5 flex items-center gap-4"
@@ -98,11 +98,11 @@ export default function EstatePage() {
             <div className="text-yellow-300 font-bold text-lg">Gouden Paleis Bereikt!</div>
             <div className="text-yellow-200/60 text-sm">Je hebt het ultieme level van alle domeinen bereikt. Legendarisch.</div>
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {/* Domains */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -139,7 +139,7 @@ export default function EstatePage() {
                   <span>{next ? `Dag ${next.threshold}` : 'Max bereikt'}</span>
                 </div>
                 <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
+                  <m.div
                     className="h-full rounded-full"
                     style={{ background: accent }}
                     initial={{ width: 0 }}
@@ -165,7 +165,7 @@ export default function EstatePage() {
             </div>
           );
         })}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

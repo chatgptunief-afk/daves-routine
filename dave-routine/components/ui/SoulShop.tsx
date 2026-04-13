@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Coins, Snowflake, ShoppingBag } from 'lucide-react';
 
 interface SoulShopProps {
@@ -12,7 +12,7 @@ export function SoulShop({ soulCoins, freezes, onBuyFreeze }: SoulShopProps) {
   const canAfford = soulCoins >= 50;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15 }}
@@ -53,20 +53,27 @@ export function SoulShop({ soulCoins, freezes, onBuyFreeze }: SoulShopProps) {
               Beschermt je streak als je een dag mist. Wordt automatisch gebruikt.
             </p>
           </div>
-          <button
-            onClick={onBuyFreeze}
-            disabled={!canAfford}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs transition-all ${
-              canAfford
-                ? 'bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/30 active:scale-95'
-                : 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
-            }`}
-          >
-            <Coins size={12} />
-            50
-          </button>
+          
+          {freezes >= 3 ? (
+            <div className="flex-shrink-0 text-sky-400/80 font-bold text-xs bg-sky-500/10 px-3 py-2 rounded-xl text-center">
+              MAX<br/>3/3
+            </div>
+          ) : (
+            <button
+              onClick={onBuyFreeze}
+              disabled={!canAfford}
+              className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs transition-all ${
+                canAfford
+                  ? 'bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/30 active:scale-95'
+                  : 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
+              }`}
+            >
+              <Coins size={12} />
+              50
+            </button>
+          )}
         </div>
-        {!canAfford && (
+        {!canAfford && freezes < 3 && (
           <p className="text-white/20 text-[10px] mt-2">
             Je hebt nog {50 - soulCoins} coins nodig.
           </p>
@@ -76,6 +83,6 @@ export function SoulShop({ soulCoins, freezes, onBuyFreeze }: SoulShopProps) {
       <p className="text-white/20 text-[10px] text-center">
         Verdien 1 coin per voltooide taak
       </p>
-    </motion.div>
+    </m.div>
   );
 }

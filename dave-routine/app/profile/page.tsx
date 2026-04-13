@@ -1,6 +1,6 @@
 'use client';
 import { useAppState } from '@/hooks/useAppState';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { User, Plus, Trash2, Save, Target } from 'lucide-react';
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types';
@@ -64,15 +64,15 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8 pb-10">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+      <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           <User className="text-violet-400" /> Profiel & Instellingen
         </h1>
         <p className="text-white/40 text-sm mt-1">Pas je app helemaal naar wens aan</p>
-      </motion.div>
+      </m.div>
 
       {/* Profile Section */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
@@ -111,7 +111,7 @@ export default function ProfilePage() {
             </button>
           </div>
         )}
-      </motion.div>
+      </m.div>
 
       {/* Soul Shop */}
       <SoulShop
@@ -124,7 +124,7 @@ export default function ProfilePage() {
       <CategoryXPBars categoryXP={state.categoryXP ?? {}} />
 
       {/* Frog of the Day Selector */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
@@ -154,10 +154,10 @@ export default function ProfilePage() {
             🐸 Eet de kikker als eerste vandaag!
           </p>
         )}
-      </motion.div>
+      </m.div>
 
       {/* Task Defaults Section */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -176,7 +176,7 @@ export default function ProfilePage() {
         {/* Add Task Form */}
         <AnimatePresence>
           {isAddingTask && (
-            <motion.div
+            <m.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -243,7 +243,7 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
@@ -287,7 +287,7 @@ export default function ProfilePage() {
             );
           })}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

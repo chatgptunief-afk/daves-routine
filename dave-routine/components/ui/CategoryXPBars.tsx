@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { getXPProgress } from '@/lib/storage';
 import { Zap } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const CATEGORY_META: { key: string; label: string; icon: string; color: string; 
 
 export function CategoryXPBars({ categoryXP }: CategoryXPBarsProps) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
@@ -47,7 +47,7 @@ export function CategoryXPBars({ categoryXP }: CategoryXPBarsProps) {
                 </div>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <motion.div
+                <m.div
                   className={`h-full rounded-full ${bar}`}
                   initial={{ width: 0 }}
                   animate={{ width: `${pct}%` }}
@@ -62,6 +62,6 @@ export function CategoryXPBars({ categoryXP }: CategoryXPBarsProps) {
       <p className="text-white/20 text-[10px] text-center">
         +10 XP per voltooide taak per categorie
       </p>
-    </motion.div>
+    </m.div>
   );
 }
