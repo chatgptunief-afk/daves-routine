@@ -147,63 +147,58 @@ export function saveState(state: AppState): void {
 function processStreakReset(
   streak: SingleStreakData,
   prevCompleted: boolean,
-  missedYesterday: boolean,
+  lastResetWasYesterday: boolean,
   freezesAvailable: number
 ): { newStreak: SingleStreakData; freezeUsed: boolean } {
   let newStreak = { ...streak };
   let freezeUsed = false;
 
   if (prevCompleted) {
-    // Already completed, keep streak
+    // Completed yesterday → keep streak
     newStreak.currentStreak = streak.currentStreak;
-  } else if (missedYesterday) {
-    // Missed! Check for freeze
-    if (freezesAvailable > 0) {
-      // Use a freeze — preserve the streak
-      newStreak.currentStreak = streak.currentStreak;
-      freezeUsed = true;
-    } else {
-      newStreak.currentStreak = 0;
-    }
+  } else if (lastResetWasYesterday && freezesAvailable > 0) {
+    // Missed exactly yesterday but have a freeze → save streak
+    newStreak.currentStreak = streak.currentStreak;
+    freezeUsed = true;
+  } else {
+    // Missed one or more days without a freeze → reset
+    newStreak.currentStreak = 0;
   }
   return { newStreak, freezeUsed };
 }
 
 function resetDayTasks(prevState: AppState, today: string): AppState {
   const yesterday = getPreviousDay(today);
-  const missedYesterday = prevState.lastResetDate === yesterday;
+  // True only if the app was LAST used exactly yesterday
+  const lastResetWasYesterday = prevState.lastResetDate === yesterday;
+
+  // prevCompleted = was yesterday (= lastResetDate) actually completed?
+  // If lastResetDate is 2+ days ago this is false even if that day was completed,
+  // because they skipped at least one day since then.
+  const routineCompleted   = lastResetWasYesterday && (prevState.streaks.routine.history[prevState.lastResetDate]   || false);
+  const prayerCompleted    = lastResetWasYesterday && (prevState.streaks.prayer.history[prevState.lastResetDate]    || false);
+  const cleansoulCompleted = lastResetWasYesterday && (prevState.streaks.cleansoul.history[prevState.lastResetDate] || false);
+  const ultimateCompleted  = lastResetWasYesterday && (prevState.streaks.ultimate.history[prevState.lastResetDate]  || false);
 
   let remainingFreezes = prevState.freezes ?? 0;
 
   const routine = processStreakReset(
-    prevState.streaks.routine,
-    prevState.streaks.routine.history[prevState.lastResetDate] || false,
-    missedYesterday && !prevState.streaks.routine.history[prevState.lastResetDate],
-    remainingFreezes
+    prevState.streaks.routine, routineCompleted, lastResetWasYesterday, remainingFreezes
   );
   if (routine.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
 
   const prayer = processStreakReset(
-    prevState.streaks.prayer,
-    prevState.streaks.prayer.history[prevState.lastResetDate] || false,
-    missedYesterday && !prevState.streaks.prayer.history[prevState.lastResetDate],
-    remainingFreezes
+    prevState.streaks.prayer, prayerCompleted, lastResetWasYesterday, remainingFreezes
   );
   if (prayer.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
 
   const cleansoul = processStreakReset(
-    prevState.streaks.cleansoul,
-    prevState.streaks.cleansoul.history[prevState.lastResetDate] || false,
-    missedYesterday && !prevState.streaks.cleansoul.history[prevState.lastResetDate],
-    remainingFreezes
+    prevState.streaks.cleansoul, cleansoulCompleted, lastResetWasYesterday, remainingFreezes
   );
   if (cleansoul.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
 
   const ultimate = processStreakReset(
-    prevState.streaks.ultimate,
-    prevState.streaks.ultimate.history[prevState.lastResetDate] || false,
-    missedYesterday && !prevState.streaks.ultimate.history[prevState.lastResetDate],
-    remainingFreezes
+    prevState.streaks.ultimate, ultimateCompleted, lastResetWasYesterday, remainingFreezes
   );
   if (ultimate.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
 
