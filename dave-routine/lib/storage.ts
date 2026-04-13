@@ -235,6 +235,21 @@ function resetDayTasks(prevState: AppState, today: string): AppState {
     completed: false,
   }));
 
+  // 90-day History Cleanup to prevent infinite object growth
+  const cutoffDate = new Date(today);
+  cutoffDate.setDate(cutoffDate.getDate() - 90);
+  const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+  ['routine', 'prayer', 'cleansoul', 'ultimate'].forEach(key => {
+    const streak = newStreaks[key as keyof StreakData];
+    Object.keys(streak.history).forEach(dateStr => {
+      // Safe lexical string comparison on YYYY-MM-DD
+      if (dateStr < cutoffStr) {
+        delete streak.history[dateStr];
+      }
+    });
+  });
+
   return {
     ...prevState,
     todayTasks: freshTasks,
