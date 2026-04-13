@@ -41,6 +41,11 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
     if (!task.completed) {
       setShowBurst(true);
       setTimeout(() => setShowBurst(false), 600);
+      try {
+        if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate([10, 30, 10]);
+        }
+      } catch (e) {}
     }
     onToggle(task.id);
   }, [task.completed, task.id, onToggle]);
@@ -102,11 +107,11 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
       {/* Icon + Text */}
       <span className="text-2xl flex-shrink-0">{task.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className={`font-medium text-sm leading-tight transition-all duration-300 ${task.completed ? 'line-through text-white/40' : 'text-white'}`}>
+        <p className={`font-medium text-sm leading-tight transition-all duration-300 ${task.completed ? 'line-through text-white/50' : 'text-white'}`}>
           {task.title}
         </p>
         {task.description && (
-          <p className="text-xs text-white/40 mt-0.5 truncate">{task.description}</p>
+          <p className="text-xs text-white/50 mt-0.5 truncate">{task.description}</p>
         )}
       </div>
 

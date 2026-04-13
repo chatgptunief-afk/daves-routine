@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +30,18 @@ export default function DashboardPage() {
   } = useAppState();
 
   const greeting = getGreeting();
+
+  const [showCoinToast, setShowCoinToast] = useState(false);
+  const prevCoins = useRef(state?.soulCoins ?? 0);
+
+  useEffect(() => {
+    if (state && state.soulCoins > prevCoins.current) {
+      // Only pop toast if it actually went up
+      setShowCoinToast(true);
+      setTimeout(() => setShowCoinToast(false), 2500);
+    }
+    prevCoins.current = state?.soulCoins ?? 0;
+  }, [state?.soulCoins]);
 
   if (!isLoaded || !state) {
     return (
@@ -86,9 +99,24 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-2">
             {/* Soul coin display */}
-            <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-2.5 py-1.5">
-              <Coins size={14} className="text-yellow-400" />
-              <span className="text-yellow-300 font-bold text-sm">{state.soulCoins ?? 0}</span>
+            <div className="relative">
+              <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-2.5 py-1.5">
+                <Coins size={14} className="text-yellow-400" />
+                <span className="text-yellow-300 font-bold text-sm">{state.soulCoins ?? 0}</span>
+              </div>
+              <AnimatePresence>
+                {showCoinToast && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, y: -25, scale: 1 }}
+                    exit={{ opacity: 0, y: -40 }}
+                    transition={{ type: "spring", duration: 0.8 }}
+                    className="absolute top-0 left-1/2 -translate-x-1/2 text-yellow-300 font-black text-sm whitespace-nowrap drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] pointer-events-none"
+                  >
+                    +1 🪙
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <button
               onClick={requestNotifications}

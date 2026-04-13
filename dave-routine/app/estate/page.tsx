@@ -70,7 +70,7 @@ export default function EstatePage() {
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           <Sparkles className="text-amber-400" /> Soul Estate
         </h1>
-        <p className="text-white/40 text-sm mt-1">Jouw discipline bouwt deze wereld — 50 dagen voor het Gouden Paleis</p>
+        <p className="text-white/60 text-sm mt-1">Jouw discipline bouwt deze wereld — 50 dagen voor het Gouden Paleis</p>
       </motion.div>
 
       {/* Visual Representation */}
@@ -108,7 +108,7 @@ export default function EstatePage() {
         transition={{ delay: 0.3 }}
         className="space-y-4"
       >
-        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+        <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
           <span className="w-4 h-px bg-white/20" />
           Domeinen & Upgrades
         </h2>
@@ -126,7 +126,7 @@ export default function EstatePage() {
 
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <div className="text-white/40 text-xs uppercase tracking-widest font-bold mb-0.5">{label}</div>
+                  <div className="text-white/50 text-xs uppercase tracking-widest font-bold mb-0.5">{label}</div>
                   <div className="text-white font-bold text-lg">{current.description}</div>
                 </div>
                 <div className="text-3xl">{icon}</div>
@@ -134,7 +134,7 @@ export default function EstatePage() {
 
               {/* Progress bar to next level */}
               <div className="mb-3">
-                <div className="flex items-center justify-between text-[10px] text-white/30 mb-1">
+                <div className="flex items-center justify-between text-[10px] text-white/50 mb-1">
                   <span>Dag {streak}</span>
                   <span>{next ? `Dag ${next.threshold}` : 'Max bereikt'}</span>
                 </div>
