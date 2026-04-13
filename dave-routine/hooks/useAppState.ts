@@ -25,7 +25,7 @@ export function useAppState() {
     });
   }, []);
 
-  // Toggle task: award coins + XP on completion, subtract on un-completion
+  // Toggle task: award coins when a full CATEGORY is completed, remove when uncompleted
   const toggleTask = useCallback((taskId: string) => {
     updateState(prev => {
       const task = prev.todayTasks.find(t => t.id === taskId);
@@ -36,11 +36,41 @@ export function useAppState() {
         t.id === taskId ? { ...t, completed: !t.completed } : t
       );
 
-      // Award/remove coins and XP
-      const coinDelta = wasCompleted ? -1 : 1;
+      // XP per task as before
       const xpDelta = wasCompleted ? -10 : 10;
       const catKey = task.category;
       const currentXP = prev.categoryXP[catKey] ?? 0;
+
+      // Coin logic: check if this task completing/uncompleting changes the category's done state
+      // Map categories to streak groups
+      const routineCategories = ['morning', 'daily', 'evening'];
+      const isRoutineCat = routineCategories.includes(task.category);
+      const isPrayerCat = task.category === 'prayer';
+      const isCleanSoulCat = task.category === 'cleansoul';
+
+      // Check BEFORE and AFTER state for the relevant group
+      function isCategoryGroupDone(tasks: typeof prev.todayTasks, cats: string[]): boolean {
+        const groupTasks = tasks.filter(t => cats.includes(t.category));
+        return groupTasks.length > 0 && groupTasks.every(t => t.completed);
+      }
+
+      const routineCats = ['morning', 'daily', 'evening'];
+      const prayerCats = ['prayer'];
+      const cleanSoulCats = ['cleansoul'];
+
+      const wasDoneRoutine = isCategoryGroupDone(prev.todayTasks, routineCats);
+      const wasDonePrayer = isCategoryGroupDone(prev.todayTasks, prayerCats);
+      const wasDoneCleanSoul = isCategoryGroupDone(prev.todayTasks, cleanSoulCats);
+
+      const isNowDoneRoutine = isCategoryGroupDone(updatedTasks, routineCats);
+      const isNowDonePrayer = isCategoryGroupDone(updatedTasks, prayerCats);
+      const isNowDoneCleanSoul = isCategoryGroupDone(updatedTasks, cleanSoulCats);
+
+      // Coin delta: +1 if group just became done, -1 if group just became undone
+      let coinDelta = 0;
+      if (isRoutineCat) coinDelta += (isNowDoneRoutine ? 1 : 0) - (wasDoneRoutine ? 1 : 0);
+      if (isPrayerCat) coinDelta += (isNowDonePrayer ? 1 : 0) - (wasDonePrayer ? 1 : 0);
+      if (isCleanSoulCat) coinDelta += (isNowDoneCleanSoul ? 1 : 0) - (wasDoneCleanSoul ? 1 : 0);
 
       const newState = {
         ...prev,
@@ -54,6 +84,7 @@ export function useAppState() {
       return updateStreakOnComplete(newState);
     });
   }, [updateState]);
+
 
   const toggleNotifications = useCallback(() => {
     updateState(prev => ({ ...prev, notificationsEnabled: !prev.notificationsEnabled }));
