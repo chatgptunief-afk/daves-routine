@@ -26,7 +26,7 @@ export function Navigation() {
                 <Link
                   key={href}
                   href={href}
-                  className="relative flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl flex-1 text-center"
+                  className="relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl flex-1 text-center min-w-[60px]"
                 >
                   {isActive && (
                     <motion.div
