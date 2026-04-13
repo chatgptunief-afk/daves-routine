@@ -11,16 +11,18 @@ export function useAppState() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const loaded = loadState();
-    setState(loaded);
-    setIsLoaded(true);
+    loadState().then(loaded => {
+      setState(loaded);
+      setIsLoaded(true);
+    });
   }, []);
 
   const updateState = useCallback((updater: (prev: AppState) => AppState) => {
     setState(prev => {
       if (!prev) return prev;
       const next = updater(prev);
-      saveState(next);
+      // Fire and forget save to IDB
+      saveState(next).catch(console.error);
       return next;
     });
   }, []);

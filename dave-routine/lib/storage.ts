@@ -1,5 +1,6 @@
 import { AppState, SingleStreakData, StreakData, Task } from '@/types';
 import { getInitialTasks, getTodayDateString } from './tasks';
+import { get, set } from 'idb-keyval';
 
 const STORAGE_KEY = 'dave-routine-state-v5';
 
@@ -34,13 +35,27 @@ export function getDefaultState(): AppState {
   };
 }
 
-export function loadState(): AppState {
+export async function loadState(): Promise<AppState> {
   if (typeof window === 'undefined') return getDefaultState();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return migrateLegacyState();
-    const state: AppState = JSON.parse(raw);
+    let state: AppState | null = null;
+    
+    // 1. Try to read from IndexedDB
+    const idbRaw = await get<AppState>(STORAGE_KEY);
+    if (idbRaw) {
+      state = idbRaw;
+    } else {
+      // 2. Fallback to localStorage (Migration)
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        state = JSON.parse(raw);
+        // Save to IndexedDB for next time
+        await set(STORAGE_KEY, state);
+      }
+    }
 
+    if (!state) return migrateLegacyState();
+    
     // Safety checks for missing fields
     if (!state.userName) state.userName = 'Dave';
     if (!state.taskBlueprint) state.taskBlueprint = getInitialTasks();
@@ -52,10 +67,13 @@ export function loadState(): AppState {
 
     const today = getTodayDateString();
     if (state.lastResetDate !== today) {
-      return resetDayTasks(state, today);
+      const resetState = resetDayTasks(state, today);
+      await set(STORAGE_KEY, resetState);
+      return resetState;
     }
     return state;
-  } catch {
+  } catch (e) {
+    console.error('Failed to load state from idb', e);
     return getDefaultState();
   }
 }
@@ -135,12 +153,15 @@ function migrateLegacyState(): AppState {
   return defaults;
 }
 
-export function saveState(state: AppState): void {
+export async function saveState(state: AppState): Promise<void> {
   if (typeof window === 'undefined') return;
   try {
+    // Keep a backup in localstorage just in case
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    // Persist primarily to IndexedDB
+    await set(STORAGE_KEY, state);
   } catch (e) {
-    console.error('Failed to save state', e);
+    console.error('Failed to save state to idb', e);
   }
 }
 
