@@ -144,70 +144,69 @@ export function saveState(state: AppState): void {
   }
 }
 
-function processStreakReset(
-  streak: SingleStreakData,
-  prevCompleted: boolean,
-  lastResetWasYesterday: boolean,
-  freezesAvailable: number
-): { newStreak: SingleStreakData; freezeUsed: boolean } {
-  let newStreak = { ...streak };
-  let freezeUsed = false;
-
-  if (prevCompleted) {
-    // Completed yesterday → keep streak
-    newStreak.currentStreak = streak.currentStreak;
-  } else if (lastResetWasYesterday && freezesAvailable > 0) {
-    // Missed exactly yesterday but have a freeze → save streak
-    newStreak.currentStreak = streak.currentStreak;
-    freezeUsed = true;
-  } else {
-    // Missed one or more days without a freeze → reset
-    newStreak.currentStreak = 0;
-  }
-  return { newStreak, freezeUsed };
+function getNextDaySafe(dateStr: string): string {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d + 1));
+  return date.toISOString().split('T')[0];
 }
 
 function resetDayTasks(prevState: AppState, today: string): AppState {
-  const yesterday = getPreviousDay(today);
-  // True only if the app was LAST used exactly yesterday
-  const lastResetWasYesterday = prevState.lastResetDate === yesterday;
+  if (prevState.lastResetDate >= today) {
+    return prevState; // Already reset or future time
+  }
 
-  // prevCompleted = was yesterday (= lastResetDate) actually completed?
-  // If lastResetDate is 2+ days ago this is false even if that day was completed,
-  // because they skipped at least one day since then.
-  const routineCompleted   = lastResetWasYesterday && (prevState.streaks.routine.history[prevState.lastResetDate]   || false);
-  const prayerCompleted    = lastResetWasYesterday && (prevState.streaks.prayer.history[prevState.lastResetDate]    || false);
-  const cleansoulCompleted = lastResetWasYesterday && (prevState.streaks.cleansoul.history[prevState.lastResetDate] || false);
-  const ultimateCompleted  = lastResetWasYesterday && (prevState.streaks.ultimate.history[prevState.lastResetDate]  || false);
+  let freezesToUse = 0;
+  let sufficientFreezes = true;
+  const daysToEvaluate: string[] = [];
+  
+  // Gather all days from lastResetDate up to yesterday
+  for (let d = prevState.lastResetDate; d < today; d = getNextDaySafe(d)) {
+    daysToEvaluate.push(d);
+  }
+
+  let daysFailed = 0;
+  
+  // A day is failed if ANY active streak (currentStreak > 0) was NOT completed
+  daysToEvaluate.forEach(d => {
+    let dayHasFailure = false;
+    ['routine', 'prayer', 'cleansoul', 'ultimate'].forEach(key => {
+      const streak = prevState.streaks[key as keyof StreakData];
+      if (streak.currentStreak > 0 && !streak.history[d]) {
+        dayHasFailure = true;
+      }
+    });
+    if (dayHasFailure) {
+      daysFailed++;
+    }
+  });
 
   let remainingFreezes = prevState.freezes ?? 0;
+  if (daysFailed > 0) {
+    if (remainingFreezes >= daysFailed) {
+      freezesToUse = daysFailed;
+      remainingFreezes -= daysFailed;
+      sufficientFreezes = true;
+    } else {
+      sufficientFreezes = false;
+      // Not enough freezes -> we do NOT drain their freezes for a lost streak
+    }
+  }
 
-  const routine = processStreakReset(
-    prevState.streaks.routine, routineCompleted, lastResetWasYesterday, remainingFreezes
-  );
-  if (routine.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
+  // Deep clone streaks
+  const newStreaks = JSON.parse(JSON.stringify(prevState.streaks)) as StreakData;
 
-  const prayer = processStreakReset(
-    prevState.streaks.prayer, prayerCompleted, lastResetWasYesterday, remainingFreezes
-  );
-  if (prayer.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
-
-  const cleansoul = processStreakReset(
-    prevState.streaks.cleansoul, cleansoulCompleted, lastResetWasYesterday, remainingFreezes
-  );
-  if (cleansoul.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
-
-  const ultimate = processStreakReset(
-    prevState.streaks.ultimate, ultimateCompleted, lastResetWasYesterday, remainingFreezes
-  );
-  if (ultimate.freezeUsed) remainingFreezes = Math.max(0, remainingFreezes - 1);
-
-  const newStreaks: StreakData = {
-    routine: routine.newStreak,
-    prayer: prayer.newStreak,
-    cleansoul: cleansoul.newStreak,
-    ultimate: ultimate.newStreak,
-  };
+  if (!sufficientFreezes) {
+    // Reset any streak that failed on ANY of the evaluated days
+    daysToEvaluate.forEach(d => {
+      ['routine', 'prayer', 'cleansoul', 'ultimate'].forEach(key => {
+        const streak = newStreaks[key as keyof StreakData];
+        if (streak.currentStreak > 0 && !streak.history[d]) {
+          streak.currentStreak = 0;
+        }
+      });
+    });
+  }
 
   // Use Blueprint to generate today's tasks (reset completion)
   const freshTasks = prevState.taskBlueprint.map(task => ({
@@ -224,37 +223,23 @@ function resetDayTasks(prevState: AppState, today: string): AppState {
   };
 }
 
-function getPreviousDay(dateStr: string): string {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
-}
-
 function updateSingleStreak(streak: SingleStreakData, today: string, isCompleted: boolean): SingleStreakData {
-  const newHistory = { ...streak.history, [today]: isCompleted };
-
+  const wasCompletedToday = streak.history[today] || false;
   let currentStreak = streak.currentStreak;
-  if (isCompleted && streak.lastCompletedDate !== today) {
-    const yesterday = getPreviousDay(today);
-    if (streak.lastCompletedDate === yesterday || streak.currentStreak === 0) {
-      currentStreak = streak.currentStreak + 1;
-    } else if (!streak.lastCompletedDate) {
-      currentStreak = 1;
-    }
-  } else if (!isCompleted && streak.lastCompletedDate === today) {
-    currentStreak = Math.max(0, currentStreak - 1);
+
+  if (isCompleted && !wasCompletedToday) {
+    currentStreak++; // Just completed today
+  } else if (!isCompleted && wasCompletedToday) {
+    currentStreak = Math.max(0, currentStreak - 1); // Just un-completed today
   }
 
+  const newHistory = { ...streak.history, [today]: isCompleted };
   const longestStreak = Math.max(streak.longestStreak, currentStreak);
 
   return {
     currentStreak,
     longestStreak,
-    lastCompletedDate: isCompleted
-      ? today
-      : streak.lastCompletedDate === today
-      ? getPreviousDay(today)
-      : streak.lastCompletedDate,
+    lastCompletedDate: isCompleted ? today : (streak.lastCompletedDate === today ? null : streak.lastCompletedDate),
     history: newHistory,
   };
 }
