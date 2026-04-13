@@ -1,12 +1,14 @@
 'use client';
 import { useAppState } from '@/hooks/useAppState';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Plus, Trash2, Save } from 'lucide-react';
+import { User, Plus, Trash2, Save, Target } from 'lucide-react';
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types';
+import { SoulShop } from '@/components/ui/SoulShop';
+import { CategoryXPBars } from '@/components/ui/CategoryXPBars';
 
 export default function ProfilePage() {
-  const { state, isLoaded, setUserName, addTask, deleteTask } = useAppState();
+  const { state, isLoaded, setUserName, addTask, deleteTask, buyFreeze, setFrogTask } = useAppState();
 
   const [editName, setEditName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -34,7 +36,7 @@ export default function ProfilePage() {
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
-    
+
     const newTask: Task = {
       id: `task-${Date.now()}`,
       title: newTaskTitle.trim(),
@@ -42,9 +44,9 @@ export default function ProfilePage() {
       category: newTaskCategory,
       icon: newTaskEmoji || '✨',
       completed: false,
-      order: state.taskBlueprint.filter(t => t.category === newTaskCategory).length + 1
+      order: state.taskBlueprint.filter(t => t.category === newTaskCategory).length + 1,
     };
-    
+
     addTask(newTask);
     setNewTaskTitle('');
     setNewTaskDesc('');
@@ -57,7 +59,7 @@ export default function ProfilePage() {
     { key: 'morning', label: 'Ochtendroutine' },
     { key: 'daily', label: 'Dagelijks' },
     { key: 'evening', label: 'Avondroutine' },
-    { key: 'cleansoul', label: 'Clean Soul' }
+    { key: 'cleansoul', label: 'Clean Soul' },
   ];
 
   return (
@@ -77,18 +79,18 @@ export default function ProfilePage() {
         className="bg-white/[0.03] border border-white/10 rounded-3xl p-6"
       >
         <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Roepnaam</h2>
-        
+
         {isEditingName ? (
           <div className="flex gap-2">
-            <input 
-              type="text" 
-              value={editName} 
-              onChange={e => setEditName(e.target.value)} 
+            <input
+              type="text"
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
               placeholder="Jouw naam..."
               className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-violet-500 transition-colors"
               autoFocus
             />
-            <button 
+            <button
               onClick={handleSaveName}
               className="bg-violet-600 hover:bg-violet-500 text-white p-2 px-4 rounded-xl flex items-center gap-2 transition-colors font-medium"
             >
@@ -101,7 +103,7 @@ export default function ProfilePage() {
               <div className="text-xs text-white/40 mb-1">Je wordt aangesproken als:</div>
               <div className="text-xl font-bold text-white">{state.userName}</div>
             </div>
-            <button 
+            <button
               onClick={() => { setEditName(state.userName); setIsEditingName(true); }}
               className="text-violet-400 text-sm font-medium hover:text-violet-300 transition-colors bg-violet-500/10 px-3 py-1.5 rounded-lg"
             >
@@ -111,16 +113,59 @@ export default function ProfilePage() {
         )}
       </motion.div>
 
+      {/* Soul Shop */}
+      <SoulShop
+        soulCoins={state.soulCoins ?? 0}
+        freezes={state.freezes ?? 0}
+        onBuyFreeze={buyFreeze}
+      />
+
+      {/* Category XP */}
+      <CategoryXPBars categoryXP={state.categoryXP ?? {}} />
+
+      {/* Frog of the Day Selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="bg-white/[0.03] border border-white/10 rounded-3xl p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Target size={16} className="text-amber-400" />
+          <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Frog of the Day 🐸</h2>
+        </div>
+        <p className="text-white/30 text-xs mb-4 leading-relaxed">
+          Kies je moeilijkste/belangrijkste taak voor vandaag. Deze krijgt prioriteit bovenaan de lijst.
+        </p>
+        <select
+          value={state.frogTaskId ?? ''}
+          onChange={e => setFrogTask(e.target.value || null)}
+          className="w-full bg-[#1c1c36] border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 appearance-none"
+        >
+          <option value="">— Geen prioriteitstaak —</option>
+          {state.taskBlueprint.map(t => (
+            <option key={t.id} value={t.id}>
+              {t.icon} {t.title}
+            </option>
+          ))}
+        </select>
+        {state.frogTaskId && (
+          <p className="text-amber-400/60 text-[10px] mt-2 text-center">
+            🐸 Eet de kikker als eerste vandaag!
+          </p>
+        )}
+      </motion.div>
+
       {/* Task Defaults Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.3 }}
         className="space-y-4"
       >
         <div className="flex justify-between items-center">
           <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Jouw Eigen Routines</h2>
-          <button 
+          <button
             onClick={() => setIsAddingTask(!isAddingTask)}
             className="text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
           >
@@ -141,32 +186,32 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   <div className="w-16 flex-shrink-0">
                     <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Emoji</label>
-                    <input 
-                      type="text" 
-                      value={newTaskEmoji} 
-                      onChange={e => setNewTaskEmoji(e.target.value)} 
+                    <input
+                      type="text"
+                      value={newTaskEmoji}
+                      onChange={e => setNewTaskEmoji(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-2 py-2 text-center text-xl focus:outline-none focus:border-violet-500"
                       maxLength={2}
                     />
                   </div>
                   <div className="flex-1">
                     <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Wat (Titel)</label>
-                    <input 
-                      type="text" 
-                      value={newTaskTitle} 
-                      onChange={e => setNewTaskTitle(e.target.value)} 
+                    <input
+                      type="text"
+                      value={newTaskTitle}
+                      onChange={e => setNewTaskTitle(e.target.value)}
                       placeholder="Bijv. Boek lezen"
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500"
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Korte Uitleg (Optioneel)</label>
-                  <input 
-                    type="text" 
-                    value={newTaskDesc} 
-                    onChange={e => setNewTaskDesc(e.target.value)} 
+                  <input
+                    type="text"
+                    value={newTaskDesc}
+                    onChange={e => setNewTaskDesc(e.target.value)}
                     placeholder="Minimaal 10 bladzijden"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500"
                   />
@@ -174,8 +219,8 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Wanneer?</label>
-                  <select 
-                    value={newTaskCategory} 
+                  <select
+                    value={newTaskCategory}
                     onChange={e => setNewTaskCategory(e.target.value as TaskCategory)}
                     className="w-full bg-[#1c1c36] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500 appearance-none"
                   >
@@ -184,13 +229,13 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="pt-2 flex gap-2">
-                  <button 
+                  <button
                     onClick={() => setIsAddingTask(false)}
                     className="flex-1 bg-white/5 hover:bg-white/10 text-white rounded-xl py-2.5 text-sm font-medium transition-colors"
                   >
                     Annuleren
                   </button>
-                  <button 
+                  <button
                     onClick={handleAddTask}
                     className="flex-1 bg-violet-600 hover:bg-violet-500 text-white rounded-xl py-2.5 text-sm font-medium transition-colors"
                   >
@@ -218,11 +263,14 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-3">
                         <span className="text-xl">{task.icon}</span>
                         <div>
-                          <div className="text-sm font-medium text-white/90 leading-tight">{task.title}</div>
+                          <div className="text-sm font-medium text-white/90 leading-tight flex items-center gap-1.5">
+                            {task.title}
+                            {state.frogTaskId === task.id && <span className="text-xs">🐸</span>}
+                          </div>
                           {task.description && <div className="text-[10px] text-white/30 truncate max-w-[200px]">{task.description}</div>}
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => {
                           if (confirm(`Wil je "${task.title}" definitief wissen?`)) {
                             deleteTask(task.id);

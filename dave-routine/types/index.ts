@@ -39,4 +39,10 @@ export interface AppState {
   streaks: StreakData;
   lastResetDate: string;
   notificationsEnabled: boolean;
+  // New v5 fields
+  soulCoins: number;        // +1 per completed task
+  freezes: number;          // streak freeze inventory (costs 50 coins each)
+  categoryXP: Record<string, number>;  // XP per task category
+  frogTaskId: string | null;  // "Frog of the Day" task id
+  lastCheckinDate: string | null; // date of last daily mindful check-in
 }
