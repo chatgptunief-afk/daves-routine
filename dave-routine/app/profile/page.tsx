@@ -1,6 +1,6 @@
 'use client';
 import { useAppState } from '@/hooks/useAppState';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { User, Plus, Trash2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types';
