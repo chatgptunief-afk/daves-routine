@@ -2,7 +2,7 @@
 import { useAppState } from '@/hooks/useAppState';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Crown, BellRing } from 'lucide-react';
+import { Crown, BellRing } from 'lucide-react';
 import { TaskCard } from '@/components/ui/TaskCard';
 
 const DAYS_NL = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
@@ -50,7 +50,7 @@ export default function DashboardPage() {
         if (perm === 'granted') {
           toggleNotifications();
           new Notification("Notificaties geactiveerd!", {
-            body: "Je krijgt nu meldingen van Dave's Routine.",
+            body: `Je krijgt nu meldingen, ${state.userName}.`,
             icon: '/icons/icon-192.png'
           });
         }
@@ -64,7 +64,7 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-white/40 text-sm font-medium">{getDateLabel()}</p>
           <h1 className="text-2xl font-bold text-white mt-0.5">
-            {greeting.emoji} {greeting.text}, Dave
+            {greeting.emoji} {greeting.text}, {state.userName}
           </h1>
         </motion.div>
         

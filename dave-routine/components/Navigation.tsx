@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ListChecks, Flame, Map } from 'lucide-react';
+import { LayoutDashboard, ListChecks, Flame, Map, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { href: '/estate', label: 'Home', icon: Map },
   { href: '/planning', label: 'Planning', icon: ListChecks },
   { href: '/streak', label: 'Streak', icon: Flame },
+  { href: '/profile', label: 'Profiel', icon: Settings },
 ];
 
 export function Navigation() {

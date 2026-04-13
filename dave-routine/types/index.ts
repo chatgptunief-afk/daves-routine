@@ -33,7 +33,9 @@ export interface StreakData {
 }
 
 export interface AppState {
-  todayTasks: Task[];
+  userName: string;
+  taskBlueprint: Task[]; // The master definitions of user tasks
+  todayTasks: Task[];    // The tasks initialized for today
   streaks: StreakData;
   lastResetDate: string;
   notificationsEnabled: boolean;

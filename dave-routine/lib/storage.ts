@@ -1,7 +1,7 @@
 import { AppState, SingleStreakData, StreakData, Task } from '@/types';
 import { getInitialTasks, getTodayDateString } from './tasks';
 
-const STORAGE_KEY = 'dave-routine-state-v3'; // Increased version to clear old struct
+const STORAGE_KEY = 'dave-routine-state-v4'; 
 
 function createEmptySingleStreak(): SingleStreakData {
   return {
@@ -13,8 +13,11 @@ function createEmptySingleStreak(): SingleStreakData {
 }
 
 export function getDefaultState(): AppState {
+  const initialBlueprints = getInitialTasks();
   return {
-    todayTasks: getInitialTasks(),
+    userName: 'Dave',
+    taskBlueprint: initialBlueprints,
+    todayTasks: initialBlueprints,
     streaks: {
       routine: createEmptySingleStreak(),
       prayer: createEmptySingleStreak(),
@@ -33,6 +36,10 @@ export function loadState(): AppState {
     if (!raw) return migrateLegacyState(); 
     const state: AppState = JSON.parse(raw);
     
+    // Safety check for older V4 versions lacking userName or taskBlueprint
+    if (!state.userName) state.userName = 'Dave';
+    if (!state.taskBlueprint) state.taskBlueprint = getInitialTasks();
+
     const today = getTodayDateString();
     if (state.lastResetDate !== today) {
       return resetDayTasks(state, today);
@@ -44,16 +51,39 @@ export function loadState(): AppState {
 }
 
 function migrateLegacyState(): AppState {
-  const oldRaw2 = localStorage.getItem('dave-routine-state-v2');
   const defaults = getDefaultState();
   
+  // Try v3
+  const oldRaw3 = localStorage.getItem('dave-routine-state-v3');
+  if (oldRaw3) {
+    try {
+      const oldState = JSON.parse(oldRaw3);
+      if (oldState.streaks) {
+        defaults.streaks = oldState.streaks;
+        defaults.lastResetDate = oldState.lastResetDate || getTodayDateString();
+        // Since V3 didn't have user-defined blueprints, we keep the default blueprint
+        // But we must carry over todayTasks if it's the same day
+        if (defaults.lastResetDate === getTodayDateString()) {
+           defaults.todayTasks = oldState.todayTasks || defaults.taskBlueprint;
+        } else {
+           return resetDayTasks(defaults, getTodayDateString());
+        }
+        return defaults;
+      }
+    } catch (e) {
+      console.error("V3 Migration failed");
+    }
+  }
+
+  // Try v2
+  const oldRaw2 = localStorage.getItem('dave-routine-state-v2');
   if (oldRaw2) {
     try {
       const oldState = JSON.parse(oldRaw2);
       if (oldState.streaks) {
         defaults.streaks.routine = oldState.streaks.routine || createEmptySingleStreak();
         defaults.streaks.prayer = oldState.streaks.prayer || createEmptySingleStreak();
-        defaults.streaks.cleansoul = oldState.streaks.nofap || createEmptySingleStreak(); // Migrate from nofap
+        defaults.streaks.cleansoul = oldState.streaks.nofap || createEmptySingleStreak(); 
         defaults.streaks.ultimate = oldState.streaks.ultimate || createEmptySingleStreak();
         defaults.lastResetDate = oldState.lastResetDate || getTodayDateString();
         
@@ -67,23 +97,6 @@ function migrateLegacyState(): AppState {
     }
   }
 
-  // Fallback to V1
-  const oldRaw1 = localStorage.getItem('dave-routine-state');
-  if (oldRaw1) {
-    try {
-      const oldState = JSON.parse(oldRaw1);
-      if (oldState.streak && !oldState.streaks) {
-        defaults.streaks.routine = oldState.streak;
-        defaults.lastResetDate = oldState.lastResetDate || getTodayDateString();
-        if (defaults.lastResetDate !== getTodayDateString()) {
-           return resetDayTasks(defaults, getTodayDateString());
-        }
-        return defaults;
-      }
-    } catch (e) {
-      console.error("V1 Migration failed");
-    }
-  }
   return defaults;
 }
 
@@ -117,7 +130,11 @@ function resetDayTasks(prevState: AppState, today: string): AppState {
     ultimate: processStreakReset(prevState.streaks.ultimate, prevState.streaks.ultimate.history[prevState.lastResetDate] || false, missedYesterday && !prevState.streaks.ultimate.history[prevState.lastResetDate]),
   };
   
-  const freshTasks = getInitialTasks();
+  // Use Blueprint to generate today's tasks
+  const freshTasks = prevState.taskBlueprint.map(task => ({
+    ...task,
+    completed: false
+  }));
   
   return {
     ...prevState,
@@ -165,19 +182,19 @@ export function updateStreakOnComplete(state: AppState): AppState {
   const prayerTasks = state.todayTasks.filter(t => t.category === 'prayer');
   const cleanSoulTasks = state.todayTasks.filter(t => t.category === 'cleansoul');
 
-  const routineDone = routineTasks.length > 0 && routineTasks.every(t => t.completed);
-  const prayerDone = prayerTasks.length > 0 && prayerTasks.every(t => t.completed);
-  const cleanSoulDone = cleanSoulTasks.length > 0 && cleanSoulTasks.every(t => t.completed);
+  const routineDone = routineTasks.length === 0 || routineTasks.every(t => t.completed); // Changed from length > 0 to support users deleting all tasks in a category
+  const prayerDone = prayerTasks.length === 0 || prayerTasks.every(t => t.completed);
+  const cleanSoulDone = cleanSoulTasks.length === 0 || cleanSoulTasks.every(t => t.completed);
   
   const ultimateDone = routineDone && prayerDone && cleanSoulDone;
 
   return {
     ...state,
     streaks: {
-      routine: updateSingleStreak(state.streaks.routine, today, routineDone),
-      prayer: updateSingleStreak(state.streaks.prayer, today, prayerDone),
-      cleansoul: updateSingleStreak(state.streaks.cleansoul, today, cleanSoulDone),
-      ultimate: updateSingleStreak(state.streaks.ultimate, today, ultimateDone),
+      routine: updateSingleStreak(state.streaks.routine, today, routineDone && routineTasks.length > 0),
+      prayer: updateSingleStreak(state.streaks.prayer, today, prayerDone && prayerTasks.length > 0),
+      cleansoul: updateSingleStreak(state.streaks.cleansoul, today, cleanSoulDone && cleanSoulTasks.length > 0),
+      ultimate: updateSingleStreak(state.streaks.ultimate, today, ultimateDone && (routineTasks.length > 0 || prayerTasks.length > 0 || cleanSoulTasks.length > 0)),
     },
   };
 }
