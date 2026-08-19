@@ -6,6 +6,8 @@ import { Atmosphere } from '@/components/Atmosphere';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import { PageTransition } from '@/components/PageTransition';
 import { AppStateProvider } from '@/components/AppStateProvider';
+import { NotificationScheduler } from '@/components/NotificationScheduler';
+import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 
 import ClientMotionProvider from '@/components/ClientMotionProvider';
 
@@ -27,7 +29,11 @@ export const metadata: Metadata = {
     title: "Dave's Routine",
   },
   icons: {
-    apple: '/icons/icon-192.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icons/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: '/apple-touch-icon.png',
   },
 };
 
@@ -45,10 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ClientMotionProvider>
           <AppStateProvider>
             <Atmosphere />
-            <main className="relative z-10 max-w-[430px] mx-auto px-5 pt-6 pb-28 min-h-screen">
+            <main className="relative z-10 max-w-[430px] mx-auto px-5 pt-safe pb-28 min-h-screen">
               <PageTransition>{children}</PageTransition>
             </main>
             <TabBar />
+            <NotificationScheduler />
+            <NotificationPrompt />
           </AppStateProvider>
         </ClientMotionProvider>
         <ServiceWorkerRegistration />

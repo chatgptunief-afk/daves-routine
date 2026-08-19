@@ -1,11 +1,11 @@
 {
-  "name": "Dave's Routine",
-  "short_name": "Routine",
-  "description": "Persoonlijke planning en herstelroutine app met streak systeem",
+  "name": "Dagboog — Dave's Routine",
+  "short_name": "Dagboog",
+  "description": "Van Fajr tot Isha. Eén steen per dag.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0c0b10",
-  "theme_color": "#0c0b10",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
   "orientation": "portrait-primary",
   "icons": [
     {

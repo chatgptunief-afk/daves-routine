@@ -95,9 +95,13 @@ body {
   font-family: var(--font-display);
 }
 
-/* Safe area voor iOS */
+/* Safe area voor iOS — standalone PWA gebruikt statusBarStyle "black-translucent",
+   dus inhoud loopt anders onder de notch/Dynamic Island door. */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe {
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
 }
 
 /* Custom scrollbar */

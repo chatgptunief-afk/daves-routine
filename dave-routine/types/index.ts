@@ -83,13 +83,23 @@ export interface DayRecord {
 }
 
 export interface AppSettings {
-  notificationsEnabled: boolean;
+  notificationsEnabled: boolean; // hoofdschakelaar
   eveningNudgeTime?: string | null; // "HH:mm", optioneel, geen streak-waarschuwingen ooit
   prayerTimeSource: 'calculated' | 'manual';
   location: { lat: number; lng: number } | null;
   manualPrayerTimes: Omit<PrayerTimes, 'date'> | null;
   reducedMotionOverride: boolean;
   highContrast: boolean;
+  // Meldingen — elk los uitzetbaar, geen enkele staat standaard "aan" zonder reden.
+  // Zie NotificationScheduler.tsx: dit zijn puur voorkeuren, de planner beslist zelf
+  // of er op basis van échte data (ankers, gebedstijden) iets te melden valt.
+  notifMorningEnabled: boolean;
+  notifMorningTime: string; // "HH:mm"
+  notifRoutineEnabled: boolean;
+  notifEveningEnabled: boolean;
+  notifEveningTime: string; // "HH:mm"
+  notifPrayerEnabled: boolean;
+  notifPromptShown: boolean; // is de eenmalige "wil je meldingen"-ask al getoond
 }
 
 export interface AppState {

@@ -77,6 +77,16 @@ export function arcPosition(time: Date, times: PrayerTimes): number {
   return Math.max(0.02, Math.min(0.98, ratio));
 }
 
+/** Inverse van arcPosition: gegeven t (0=Fajr, 1=Isha), welke kloktijd hoort daarbij.
+ *  Gebruikt door de Boog om tijdens scrubben een tijd te tonen die bij de aanraakpositie hoort. */
+export function timeAtArcPosition(t: number, times: PrayerTimes): Date {
+  const tm = prayerTimesToDates(times);
+  const start = tm.fajr.getTime();
+  const end = tm.isha.getTime();
+  const clamped = Math.max(0, Math.min(1, t));
+  return new Date(start + clamped * (end - start));
+}
+
 export interface ArcMarkers {
   fajr: number; dhuhr: number; asr: number; maghrib: number; isha: number;
 }
@@ -96,6 +106,7 @@ const ARC_R = 140;
 const ARC_CX = 160;
 const ARC_CY = 168;
 export const ARC_PATH_LENGTH = Math.PI * ARC_R;
+export { ARC_R, ARC_CX, ARC_CY };
 
 export function pointOnArc(t: number): { x: number; y: number } {
   const angle = Math.PI - t * Math.PI; // t=0 -> 180° (links), t=1 -> 0° (rechts)

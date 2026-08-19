@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+<svg id="icon" width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="62%" cy="36%" r="75%">
+      <stop offset="0%" stop-color="#1B1926" />
+      <stop offset="55%" stop-color="#111019" />
+      <stop offset="100%" stop-color="#07070C" />
+    </radialGradient>
+    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C9752F" />
+      <stop offset="62%" stop-color="#E8934A" />
+      <stop offset="100%" stop-color="#F2AC6E" />
+    </linearGradient>
+    <radialGradient id="lightCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFBF2" />
+      <stop offset="55%" stop-color="#F5F1E8" />
+      <stop offset="100%" stop-color="#F5F1E8" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="horizonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E8934A" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#E8934A" stop-opacity="0" />
+    </radialGradient>
+    <filter id="softBloom" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="12" />
+    </filter>
+    <filter id="lightBloom" x="-250%" y="-250%" width="600%" height="600%">
+      <feGaussianBlur stdDeviation="16" />
+    </filter>
+    <filter id="fineGrain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="noise" />
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0" />
+    </filter>
+  </defs>
+
+  <!-- achtergrond: dezelfde inktlucht als de app -->
+  <rect x="0" y="0" width="512" height="512" fill="url(#bg)" />
+
+  <!-- warme gloed rond het lichtpunt, alsof het de lucht eromheen kleurt -->
+  <circle cx="320" cy="167" r="230" fill="url(#horizonGlow)" opacity="0.55" />
+
+  <!-- de boog: dunne track -->
+  <path d="M 81 330 A 175 175 0 0 1 431 330" fill="none" stroke="rgba(245,241,232,0.16)" stroke-width="7" stroke-linecap="round" />
+
+  <!-- gloed onder het gevulde deel -->
+  <path d="M 81 330 A 175 175 0 0 1 431 330" fill="none" stroke="url(#arcGrad)" stroke-width="26"
+        stroke-linecap="round" stroke-dasharray="341 550" opacity="0.30" filter="url(#softBloom)" />
+
+  <!-- het gevulde deel: van Fajr tot het huidige moment -->
+  <path d="M 81 330 A 175 175 0 0 1 431 330" fill="none" stroke="url(#arcGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="341 550" />
+
+  <!-- lichtpunt: het huidige moment op de boog -->
+  <circle cx="320" cy="167" r="46" fill="url(#lightCore)" opacity="0.55" filter="url(#lightBloom)" />
+  <circle cx="320" cy="167" r="13" fill="#FFFBF2" />
+
+  <!-- korrel, zeer subtiel -->
+  <rect x="0" y="0" width="512" height="512" filter="url(#fineGrain)" opacity="0.5" />
+</svg>
+</body>
+</html>

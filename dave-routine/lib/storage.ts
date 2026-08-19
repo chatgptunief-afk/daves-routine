@@ -29,6 +29,13 @@ export function getDefaultState(): AppState {
       manualPrayerTimes: { ...DEFAULT_MANUAL_TIMES },
       reducedMotionOverride: false,
       highContrast: false,
+      notifMorningEnabled: true,
+      notifMorningTime: '07:30',
+      notifRoutineEnabled: false,
+      notifEveningEnabled: true,
+      notifEveningTime: '21:30',
+      notifPrayerEnabled: false,
+      notifPromptShown: false,
     },
     ankerIds: [...DEFAULT_ANKER_IDS],
     frogTaskId: null,
@@ -112,6 +119,10 @@ function validateStructure(raw: AppState): AppState {
       notificationsEnabled: false, eveningNudgeTime: null, prayerTimeSource: 'manual',
       location: null, manualPrayerTimes: { ...DEFAULT_MANUAL_TIMES },
       reducedMotionOverride: false, highContrast: false,
+      notifMorningEnabled: true, notifMorningTime: '07:30',
+      notifRoutineEnabled: false,
+      notifEveningEnabled: true, notifEveningTime: '21:30',
+      notifPrayerEnabled: false, notifPromptShown: false,
     };
   } else {
     if (state.settings.manualPrayerTimes === undefined) state.settings.manualPrayerTimes = { ...DEFAULT_MANUAL_TIMES };
@@ -119,6 +130,15 @@ function validateStructure(raw: AppState): AppState {
     if (state.settings.location === undefined) state.settings.location = null;
     if (state.settings.reducedMotionOverride === undefined) state.settings.reducedMotionOverride = false;
     if (state.settings.highContrast === undefined) state.settings.highContrast = false;
+    // Meldingen-granulariteit toegevoegd na v6 — bestaande gebruikers krijgen kalme defaults,
+    // nooit een notificatiesoort die stilletjes "aan" springt zonder dat ze dat kozen.
+    if (state.settings.notifMorningEnabled === undefined) state.settings.notifMorningEnabled = true;
+    if (state.settings.notifMorningTime === undefined) state.settings.notifMorningTime = '07:30';
+    if (state.settings.notifRoutineEnabled === undefined) state.settings.notifRoutineEnabled = false;
+    if (state.settings.notifEveningEnabled === undefined) state.settings.notifEveningEnabled = true;
+    if (state.settings.notifEveningTime === undefined) state.settings.notifEveningTime = '21:30';
+    if (state.settings.notifPrayerEnabled === undefined) state.settings.notifPrayerEnabled = false;
+    if (state.settings.notifPromptShown === undefined) state.settings.notifPromptShown = false;
   }
   return state;
 }

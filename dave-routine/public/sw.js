@@ -1,9 +1,7 @@
-// Service Worker for Dave's Routine PWA
-const CACHE_NAME = 'dave-routine-v1';
+// Service Worker for Dave's Routine PWA ("Dagboog")
+const CACHE_NAME = 'dagboog-v2';
 const STATIC_ASSETS = [
   '/',
-  '/planning',
-  '/streak',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -46,16 +44,35 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notifications
+// Push notifications — toont wat de afzender meestuurt. Er is momenteel geen server die hier
+// iets naartoe stuurt (zie NotificationScheduler.tsx voor wat wél al werkt); deze handler is
+// alvast klaar voor zodra dat er is, en toont ondertussen ook lokale showNotification()-aanroepen
+// op dezelfde, kalme manier.
 self.addEventListener('push', (event) => {
-  const data = event.data?.json() || {};
+  let data = {};
+  try { data = event.data?.json() || {}; } catch { data = {}; }
   event.waitUntil(
-    self.registration.showNotification(data.title || "Dave's Routine", {
-      body: data.body || 'Vergeet je routine niet!',
+    self.registration.showNotification(data.title || 'Dagboog', {
+      body: data.body || 'Een rustig moment voor je.',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
-      tag: data.tag || 'routine',
+      tag: data.tag || 'dagboog',
+      data: { url: data.url || '/' },
       renotify: true,
+    })
+  );
+});
+
+// Tik op een melding -> open de app (of breng het bestaande tabblad naar voren) i.p.v. niets
+// te doen. Zonder dit blijft een tik op een melding op de meeste platformen zonder effect.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+      const existing = clientsArr.find((c) => 'focus' in c);
+      if (existing) { existing.navigate(url); return existing.focus(); }
+      return self.clients.openWindow(url);
     })
   );
 });
