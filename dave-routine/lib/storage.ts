@@ -44,7 +44,7 @@ export async function loadState(): Promise<AppState> {
   try {
     const idbRaw = await get<AppState>(STORAGE_KEY);
     if (idbRaw) state = idbRaw;
-  } catch (e) {
+  } catch {
     // IDB might be blocked in some private browsing modes
   }
 
@@ -57,7 +57,7 @@ export async function loadState(): Promise<AppState> {
         // Save to IndexedDB for next time, but catch silently
         try { await set(STORAGE_KEY, state); } catch {}
       }
-    } catch (e) {
+    } catch {
       // LocalStorage read failed
     }
   }
@@ -189,10 +189,10 @@ export async function saveState(state: AppState): Promise<void> {
   // Persist safely, ignoring quota/private mode errors to prevent thread blocking
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {}
+  } catch {}
   try {
     await set(STORAGE_KEY, state);
-  } catch (e) {}
+  } catch {}
 }
 
 function getNextDaySafe(dateStr: string): string {
@@ -207,7 +207,6 @@ function resetDayTasks(prevState: AppState, today: string): AppState {
     return prevState; // Already reset or future time
   }
 
-  let freezesToUse = 0;
   let sufficientFreezes = true;
   const daysToEvaluate: string[] = [];
   
@@ -235,7 +234,6 @@ function resetDayTasks(prevState: AppState, today: string): AppState {
   let remainingFreezes = prevState.freezes ?? 0;
   if (daysFailed > 0) {
     if (remainingFreezes >= daysFailed) {
-      freezesToUse = daysFailed;
       remainingFreezes -= daysFailed;
       sufficientFreezes = true;
     } else {

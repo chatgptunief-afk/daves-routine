@@ -1,7 +1,7 @@
 'use client';
 import { useAppState } from '@/hooks/useAppState';
 import { m, AnimatePresence } from 'framer-motion';
-import { User, Plus, Trash2, Save, Target } from 'lucide-react';
+import { Plus, Trash2, Target } from 'lucide-react';
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types';
 import { SoulShop } from '@/components/ui/SoulShop';
@@ -22,7 +22,7 @@ export default function ProfilePage() {
   if (!isLoaded || !state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -63,23 +63,19 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="space-y-8 pb-10">
-      <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <User className="text-violet-400" /> Profiel & Instellingen
-        </h1>
-        <p className="text-white/40 text-sm mt-1">Pas je app helemaal naar wens aan</p>
+    <div className="space-y-6 pb-6">
+      <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <h1 className="text-2xl font-bold text-text">Profiel</h1>
+        <p className="text-text-tertiary text-sm mt-0.5">Beheer je routine en instellingen</p>
       </m.div>
 
-      {/* Profile Section */}
+      {/* Name */}
       <m.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white/[0.03] border border-white/10 rounded-3xl p-6"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+        className="bg-surface border border-border rounded-card p-5"
       >
-        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Roepnaam</h2>
-
         {isEditingName ? (
           <div className="flex gap-2">
             <input
@@ -87,25 +83,25 @@ export default function ProfilePage() {
               value={editName}
               onChange={e => setEditName(e.target.value)}
               placeholder="Jouw naam..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-violet-500 transition-colors"
+              className="flex-1 bg-surface-2 border border-border rounded-control px-4 py-2.5 text-text placeholder:text-text-tertiary focus:outline-none focus:border-accent/50"
               autoFocus
             />
             <button
               onClick={handleSaveName}
-              className="bg-violet-600 hover:bg-violet-500 text-white p-2 px-4 rounded-xl flex items-center gap-2 transition-colors font-medium"
+              className="tap bg-accent text-accent-ink px-4 rounded-control text-sm font-semibold"
             >
-              <Save size={18} /> Opslaan
+              Opslaan
             </button>
           </div>
         ) : (
-          <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+          <div className="flex justify-between items-center">
             <div>
-              <div className="text-xs text-white/40 mb-1">Je wordt aangesproken als:</div>
-              <div className="text-xl font-bold text-white">{state.userName}</div>
+              <div className="text-xs text-text-tertiary mb-1">Je wordt aangesproken als</div>
+              <div className="text-xl font-bold text-text">{state.userName}</div>
             </div>
             <button
               onClick={() => { setEditName(state.userName); setIsEditingName(true); }}
-              className="text-violet-400 text-sm font-medium hover:text-violet-300 transition-colors bg-violet-500/10 px-3 py-1.5 rounded-lg"
+              className="tap text-accent-strong text-sm font-medium bg-accent-soft px-3 py-1.5 rounded-control"
             >
               Wijzig
             </button>
@@ -113,131 +109,124 @@ export default function ProfilePage() {
         )}
       </m.div>
 
-      {/* Soul Shop */}
-      <SoulShop
-        soulCoins={state.soulCoins ?? 0}
-        freezes={state.freezes ?? 0}
-        onBuyFreeze={buyFreeze}
-      />
+      <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
+        <SoulShop soulCoins={state.soulCoins ?? 0} freezes={state.freezes ?? 0} onBuyFreeze={buyFreeze} />
+      </m.div>
 
-      {/* Category XP */}
-      <CategoryXPBars categoryXP={state.categoryXP ?? {}} />
+      <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
+        <CategoryXPBars categoryXP={state.categoryXP ?? {}} />
+      </m.div>
 
-      {/* Frog of the Day Selector */}
+      {/* Frog of the Day */}
       <m.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="bg-white/[0.03] border border-white/10 rounded-3xl p-6"
+        transition={{ delay: 0.2, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+        className="bg-surface border border-border rounded-card p-5"
       >
-        <div className="flex items-center gap-2 mb-4">
-          <Target size={16} className="text-amber-400" />
-          <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Frog of the Day 🐸</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <Target size={15} className="text-accent" />
+          <h2 className="text-text font-semibold text-[15px]">Frog of the Day</h2>
         </div>
-        <p className="text-white/30 text-xs mb-4 leading-relaxed">
-          Kies je moeilijkste/belangrijkste taak voor vandaag. Deze krijgt prioriteit bovenaan de lijst.
+        <p className="text-text-tertiary text-xs mb-3.5 leading-relaxed">
+          Kies je belangrijkste taak voor vandaag. Die krijgt prioriteit bovenaan Vandaag.
         </p>
         <select
           value={state.frogTaskId ?? ''}
           onChange={e => setFrogTask(e.target.value || null)}
-          className="w-full bg-[#1c1c36] border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 appearance-none"
+          className="w-full bg-surface-2 border border-border rounded-control px-3 py-2.5 text-text text-sm focus:outline-none focus:border-accent/50 appearance-none"
         >
-          <option value="">— Geen prioriteitstaak —</option>
+          <option value="">Geen prioriteitstaak</option>
           {state.taskBlueprint.map(t => (
             <option key={t.id} value={t.id}>
               {t.icon} {t.title}
             </option>
           ))}
         </select>
-        {state.frogTaskId && (
-          <p className="text-amber-400/60 text-[10px] mt-2 text-center">
-            🐸 Eet de kikker als eerste vandaag!
-          </p>
-        )}
       </m.div>
 
-      {/* Task Defaults Section */}
+      {/* Task management */}
       <m.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="space-y-4"
+        transition={{ delay: 0.25, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+        className="space-y-3"
       >
         <div className="flex justify-between items-center">
-          <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Jouw Eigen Routines</h2>
+          <h2 className="text-text font-semibold text-[15px]">Jouw routines</h2>
           <button
             onClick={() => setIsAddingTask(!isAddingTask)}
-            className="text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+            className="tap text-accent-strong bg-accent-soft px-3 py-1.5 rounded-control text-xs font-semibold flex items-center gap-1"
           >
-            <Plus size={14} /> Nieuwe Taak
+            <Plus size={13} /> Nieuwe taak
           </button>
         </div>
 
-        {/* Add Task Form */}
         <AnimatePresence>
           {isAddingTask && (
             <m.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
               className="overflow-hidden"
             >
-              <div className="bg-violet-900/20 border border-violet-500/30 rounded-3xl p-5 mb-4 space-y-3">
+              <div className="bg-surface border border-accent/20 rounded-card p-4 mb-1 space-y-3">
                 <div className="flex gap-2">
                   <div className="w-16 flex-shrink-0">
-                    <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Emoji</label>
+                    <label className="text-[10px] text-text-tertiary mb-1 block">Emoji</label>
                     <input
                       type="text"
                       value={newTaskEmoji}
                       onChange={e => setNewTaskEmoji(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-2 py-2 text-center text-xl focus:outline-none focus:border-violet-500"
+                      className="w-full bg-surface-2 border border-border rounded-control px-2 py-2 text-center text-lg focus:outline-none focus:border-accent/50"
                       maxLength={2}
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Wat (Titel)</label>
+                    <label className="text-[10px] text-text-tertiary mb-1 block">Titel</label>
                     <input
                       type="text"
                       value={newTaskTitle}
                       onChange={e => setNewTaskTitle(e.target.value)}
                       placeholder="Bijv. Boek lezen"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500"
+                      className="w-full bg-surface-2 border border-border rounded-control px-3 py-2 text-text text-sm placeholder:text-text-tertiary focus:outline-none focus:border-accent/50"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Korte Uitleg (Optioneel)</label>
+                  <label className="text-[10px] text-text-tertiary mb-1 block">Korte uitleg (optioneel)</label>
                   <input
                     type="text"
                     value={newTaskDesc}
                     onChange={e => setNewTaskDesc(e.target.value)}
                     placeholder="Minimaal 10 bladzijden"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500"
+                    className="w-full bg-surface-2 border border-border rounded-control px-3 py-2 text-text text-sm placeholder:text-text-tertiary focus:outline-none focus:border-accent/50"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-white/50 uppercase tracking-widest pl-1 mb-1 block">Wanneer?</label>
+                  <label className="text-[10px] text-text-tertiary mb-1 block">Wanneer</label>
                   <select
                     value={newTaskCategory}
                     onChange={e => setNewTaskCategory(e.target.value as TaskCategory)}
-                    className="w-full bg-[#1c1c36] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500 appearance-none"
+                    className="w-full bg-surface-2 border border-border rounded-control px-3 py-2 text-text text-sm focus:outline-none focus:border-accent/50 appearance-none"
                   >
                     {categories.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                   </select>
                 </div>
 
-                <div className="pt-2 flex gap-2">
+                <div className="pt-1 flex gap-2">
                   <button
                     onClick={() => setIsAddingTask(false)}
-                    className="flex-1 bg-white/5 hover:bg-white/10 text-white rounded-xl py-2.5 text-sm font-medium transition-colors"
+                    className="tap flex-1 bg-surface-2 text-text-secondary rounded-control py-2.5 text-sm font-medium"
                   >
                     Annuleren
                   </button>
                   <button
                     onClick={handleAddTask}
-                    className="flex-1 bg-violet-600 hover:bg-violet-500 text-white rounded-xl py-2.5 text-sm font-medium transition-colors"
+                    className="tap flex-1 bg-accent text-accent-ink rounded-control py-2.5 text-sm font-semibold"
                   >
                     Toevoegen
                   </button>
@@ -247,27 +236,26 @@ export default function ProfilePage() {
           )}
         </AnimatePresence>
 
-        {/* Existing Tasks List */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {categories.map(cat => {
             const catTasks = state.taskBlueprint.filter(t => t.category === cat.key);
             if (catTasks.length === 0) return null;
             return (
               <div key={cat.key}>
-                <h3 className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2 pl-2">
+                <h3 className="text-text-tertiary text-[11px] font-semibold mb-1.5 pl-1">
                   {cat.label} ({catTasks.length})
                 </h3>
                 <div className="space-y-1.5">
                   {catTasks.map(task => (
-                    <div key={task.id} className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-2xl p-3 px-4 group">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{task.icon}</span>
-                        <div>
-                          <div className="text-sm font-medium text-white/90 leading-tight flex items-center gap-1.5">
-                            {task.title}
-                            {state.frogTaskId === task.id && <span className="text-xs">🐸</span>}
+                    <div key={task.id} className="flex items-center justify-between bg-surface border border-border rounded-card p-3 px-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-lg flex-shrink-0">{task.icon}</span>
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-text leading-tight flex items-center gap-1.5">
+                            <span className="truncate">{task.title}</span>
+                            {state.frogTaskId === task.id && <span className="text-xs flex-shrink-0">🐸</span>}
                           </div>
-                          {task.description && <div className="text-[10px] text-white/30 truncate max-w-[200px]">{task.description}</div>}
+                          {task.description && <div className="text-[11px] text-text-tertiary truncate max-w-[200px]">{task.description}</div>}
                         </div>
                       </div>
                       <button
@@ -276,9 +264,10 @@ export default function ProfilePage() {
                             deleteTask(task.id);
                           }
                         }}
-                        className="opacity-50 hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition-all"
+                        className="tap flex-shrink-0 text-text-tertiary p-2 rounded-control"
+                        aria-label={`Verwijder ${task.title}`}
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
                     </div>
                   ))}

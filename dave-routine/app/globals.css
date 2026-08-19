@@ -1,7 +1,46 @@
 @import "tailwindcss";
 
+@theme {
+  /* Surfaces — warm charcoal, not blue-black */
+  --color-bg: #121009;
+  --color-surface: #1c1811;
+  --color-surface-2: #241f16;
+  --color-border: rgba(244, 237, 223, 0.08);
+  --color-border-strong: rgba(244, 237, 223, 0.16);
+
+  /* Text — warm off-white, never pure white */
+  --color-text: #f3ecdd;
+  --color-text-secondary: rgba(243, 236, 221, 0.62);
+  --color-text-tertiary: rgba(243, 236, 221, 0.52);
+
+  /* Accent — single warm gold, used for primary actions & current state */
+  --color-accent: #cf9a44;
+  --color-accent-strong: #e6b968;
+  --color-accent-soft: rgba(207, 154, 68, 0.14);
+  --color-accent-ink: #201404;
+
+  /* Domain identity colors — muted, earthy family, used only as small identifiers */
+  --color-prayer: #c17a4f;
+  --color-prayer-soft: rgba(193, 122, 79, 0.14);
+  --color-cleansoul: #7f9e73;
+  --color-cleansoul-soft: rgba(127, 158, 115, 0.14);
+
+  /* Semantic */
+  --color-success: #6fae74;
+  --color-danger: #cf6a5a;
+  --color-danger-soft: rgba(207, 106, 90, 0.14);
+
+  /* One radius scale for the whole app */
+  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-sheet: 1.75rem;
+
+  --font-sans: var(--font-inter), sans-serif;
+}
+
 :root {
-  --font-inter: 'Inter', sans-serif;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 * {
@@ -9,9 +48,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
   font-family: var(--font-inter), sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
   overscroll-behavior: none;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
 }
 
 /* Safe area for iOS */
@@ -27,28 +73,30 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(244, 237, 223, 0.1);
   border-radius: 9999px;
 }
 
-/* Shimmer animation */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* Tabular numerals for anything that ticks/updates */
+.tnum {
+  font-variant-numeric: tabular-nums;
 }
 
-.shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+/* Press feedback for tappable elements */
+.tap {
+  transition: transform 160ms var(--ease-out-strong);
+}
+.tap:active {
+  transform: scale(0.97);
 }
 
-/* Pulse glow */
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.6); }
-}
-
-.pulse-glow {
-  animation: pulseGlow 2s ease-in-out infinite;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -15,68 +15,63 @@ export function DailyCheckin({ show, userName, onDone }: DailyCheckinProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#08081a]/90 backdrop-blur-xl"
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-bg/95 backdrop-blur-xl"
           onClick={onDone}
         >
           <div className="flex flex-col items-center gap-8 px-8 select-none">
-            {/* Pulsing rings */}
             <div className="relative flex items-center justify-center">
-              {[1, 2, 3].map(i => (
+              {[1, 2].map(i => (
                 <m.div
                   key={i}
-                  className="absolute rounded-full border border-violet-500/30"
-                  animate={{ scale: [1, 1.5 + i * 0.3], opacity: [0.5, 0] }}
+                  className="absolute rounded-full border border-accent/25"
+                  animate={{ scale: [1, 1.4 + i * 0.25], opacity: [0.4, 0] }}
                   transition={{
-                    duration: 2,
+                    duration: 2.2,
                     repeat: Infinity,
-                    delay: i * 0.5,
+                    delay: i * 0.6,
                     ease: 'easeOut',
                   }}
                   style={{ width: 80, height: 80 }}
                 />
               ))}
-              {/* Core circle */}
               <m.div
-                animate={{ scale: [1, 1.08, 1] }}
+                animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow-[0_0_40px_rgba(124,58,237,0.4)]"
+                className="w-20 h-20 rounded-full bg-accent-soft border border-accent/30 flex items-center justify-center"
               >
                 <span className="text-3xl">🌙</span>
               </m.div>
             </div>
 
-            {/* Text */}
             <m.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.2, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
               className="text-center"
             >
-              <p className="text-violet-300/60 text-sm font-medium mb-1">
+              <p className="text-accent-strong/80 text-sm font-medium mb-1">
                 Goedemorgen, {userName}
               </p>
-              <h2 className="text-white text-2xl font-bold mb-2">
+              <h2 className="text-text text-2xl font-bold mb-2">
                 Adem 3× rustig in
               </h2>
-              <p className="text-white/40 text-sm leading-relaxed max-w-[260px]">
-                Begin de dag bewust. Haal diep adem voordat je je taken ziet.
+              <p className="text-text-tertiary text-sm leading-relaxed max-w-[260px]">
+                Begin de dag bewust, voordat je je taken ziet.
               </p>
             </m.div>
 
-            {/* Continue button */}
             <m.button
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              whileTap={{ scale: 0.96 }}
+              transition={{ delay: 0.4, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
               onClick={(e) => { e.stopPropagation(); onDone(); }}
-              className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-8 py-3 rounded-2xl transition-colors shadow-lg shadow-violet-900/40"
+              className="tap bg-accent text-accent-ink font-semibold px-8 py-3 rounded-control"
             >
-              Ik ben klaar — Begin de dag 🌅
+              Begin de dag
             </m.button>
 
-            <p className="text-white/20 text-xs">Tik overal om door te gaan</p>
+            <p className="text-text-tertiary text-xs">Tik overal om door te gaan</p>
           </div>
         </m.div>
       )}

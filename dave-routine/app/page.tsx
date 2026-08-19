@@ -1,10 +1,11 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { m, AnimatePresence } from 'framer-motion';
-import { Crown, BellRing, Coins } from 'lucide-react';
+import { Bell, Coins, Flame } from 'lucide-react';
 import { TaskCard } from '@/components/ui/TaskCard';
+import { RoutineSection } from '@/components/ui/RoutineSection';
 import { DailyCheckin } from '@/components/ui/DailyCheckin';
 
 const DAYS_NL = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
@@ -12,9 +13,9 @@ const MONTHS_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep'
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 12) return { text: 'Goedemorgen', emoji: '☀️' };
-  if (h < 17) return { text: 'Goedemiddag', emoji: '🌤️' };
-  return { text: 'Goedenavond', emoji: '🌙' };
+  if (h < 12) return 'Goedemorgen';
+  if (h < 17) return 'Goedemiddag';
+  return 'Goedenavond';
 }
 
 function getDateLabel() {
@@ -22,47 +23,39 @@ function getDateLabel() {
   return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
 }
 
-export default function DashboardPage() {
+export default function TodayPage() {
   const {
     state, isLoaded, toggleTask, toggleNotifications, markCheckinDone, needsCheckin,
     completedCount, totalCount, completionPct, allDone,
     morningTasks, dailyTasks, eveningTasks, prayerTasks, cleanSoulTasks,
   } = useAppState();
 
-  const greeting = getGreeting();
-
+  const coins = state?.soulCoins ?? 0;
+  const [prevCoinsSeen, setPrevCoinsSeen] = useState(coins);
   const [showCoinToast, setShowCoinToast] = useState(false);
-  const prevCoins = useRef(state?.soulCoins ?? 0);
+
+  if (coins !== prevCoinsSeen) {
+    setPrevCoinsSeen(coins);
+    if (coins > prevCoinsSeen) setShowCoinToast(true);
+  }
 
   useEffect(() => {
-    if (state && state.soulCoins > prevCoins.current) {
-      // Only pop toast if it actually went up
-      setShowCoinToast(true);
-      setTimeout(() => setShowCoinToast(false), 2500);
-    }
-    prevCoins.current = state?.soulCoins ?? 0;
-  }, [state?.soulCoins]);
+    if (!showCoinToast) return;
+    const t = setTimeout(() => setShowCoinToast(false), 2200);
+    return () => clearTimeout(t);
+  }, [showCoinToast]);
 
   if (!isLoaded || !state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Frog task (shown first, separately)
   const frogTask = state.frogTaskId
-    ? state.todayTasks.find(t => t.id === state.frogTaskId) ?? null
+    ? state.todayTasks.find(t => t.id === state.frogTaskId && !t.completed) ?? null
     : null;
-
-  // Quick tasks: frog first, then up to 3 more from other incomplete tasks
-  const quickTasksBase = [
-    ...prayerTasks.filter(t => !t.completed && t.id !== state.frogTaskId).slice(0, 1),
-    ...morningTasks.filter(t => !t.completed && t.id !== state.frogTaskId).slice(0, 1),
-    ...dailyTasks.filter(t => !t.completed && t.id !== state.frogTaskId).slice(0, 1),
-    ...eveningTasks.filter(t => !t.completed && t.id !== state.frogTaskId).slice(0, 1),
-  ].slice(0, frogTask ? 3 : 4);
 
   const requestNotifications = () => {
     if ('Notification' in window) {
@@ -80,194 +73,151 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* Daily mindful check-in overlay */}
-      <DailyCheckin
-        show={needsCheckin}
-        userName={state.userName}
-        onDone={markCheckinDone}
-      />
+      <DailyCheckin show={needsCheckin} userName={state.userName} onDone={markCheckinDone} />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Header */}
-        <div className="flex justify-between items-start pt-2">
-          <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-white/40 text-sm font-medium">{getDateLabel()}</p>
-            <h1 className="text-2xl font-bold text-white mt-0.5">
-              {greeting.emoji} {greeting.text}, {state.userName}
+        <div className="flex justify-between items-start pt-1">
+          <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <p className="text-text-tertiary text-sm">{getDateLabel()}</p>
+            <h1 className="text-2xl font-bold text-text mt-0.5">
+              {getGreeting()}, {state.userName}
             </h1>
           </m.div>
 
-          <div className="flex items-center gap-2">
-            {/* Soul coin display */}
+          <div className="flex items-center gap-2 pt-0.5">
             <div className="relative">
-              <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-2.5 py-1.5">
-                <Coins size={14} className="text-yellow-400" />
-                <span className="text-yellow-300 font-bold text-sm">{state.soulCoins ?? 0}</span>
+              <div className="flex items-center gap-1.5 bg-accent-soft border border-accent/20 rounded-full px-2.5 py-1.5">
+                <Coins size={13} className="text-accent" />
+                <span className="tnum text-accent-strong font-semibold text-sm">{state.soulCoins ?? 0}</span>
               </div>
               <AnimatePresence>
                 {showCoinToast && (
                   <m.div
-                    initial={{ opacity: 0, y: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, y: -25, scale: 1 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ type: "spring", duration: 0.8 }}
-                    className="absolute top-0 left-1/2 -translate-x-1/2 text-yellow-300 font-black text-sm whitespace-nowrap drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] pointer-events-none"
+                    initial={{ opacity: 0, y: 0 }}
+                    animate={{ opacity: 1, y: -22 }}
+                    exit={{ opacity: 0, y: -32 }}
+                    transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                    className="absolute top-0 left-1/2 -translate-x-1/2 text-accent-strong font-bold text-xs whitespace-nowrap pointer-events-none"
                   >
-                    +1 🪙
+                    +1
                   </m.div>
                 )}
               </AnimatePresence>
             </div>
             <button
               onClick={requestNotifications}
-              className={`p-2 rounded-full border transition-colors ${state.notificationsEnabled ? 'bg-violet-500/20 border-violet-500/50 text-violet-400' : 'bg-white/5 border-white/10 text-white/40'}`}
+              aria-label="Notificaties"
+              className={`tap p-2.5 rounded-full border ${state.notificationsEnabled ? 'bg-accent-soft border-accent/30 text-accent' : 'bg-surface border-border text-text-tertiary'}`}
             >
-              <BellRing size={20} />
+              <Bell size={18} />
             </button>
           </div>
         </div>
 
-        {/* Ultimate Streak */}
+        {/* Frog spotlight */}
+        {frogTask && (
+          <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
+            <p className="text-xs font-semibold text-accent-strong mb-1.5 px-1">Prioriteit vandaag</p>
+            <TaskCard task={frogTask} onToggle={toggleTask} isFrog />
+          </m.div>
+        )}
+
+        {/* Progress overview */}
         <m.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-orange-500/30 flex items-center justify-between"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          className={`rounded-card p-5 border flex items-center justify-between gap-4 ${
+            allDone ? 'bg-accent-soft border-accent/25' : 'bg-surface border-border'
+          }`}
         >
-          <div className="relative z-10">
-            <h2 className="text-orange-200 font-bold uppercase tracking-wider text-xs flex items-center gap-2 mb-1">
-              <Crown size={14} /> Ultimate Streak
-            </h2>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-black bg-gradient-to-br from-yellow-300 to-orange-500 bg-clip-text text-transparent drop-shadow-sm">
-                {state.streaks.ultimate.currentStreak}
-              </span>
-              <span className="text-orange-200/60 font-medium">dagen</span>
-            </div>
-            {/* Freeze indicator if active */}
-            {(state.freezes ?? 0) > 0 && (
-              <p className="text-sky-300/60 text-[10px] mt-1">🧊 {state.freezes} freeze{state.freezes > 1 ? 's' : ''} actief</p>
+          <div className="min-w-0">
+            <h2 className="font-bold text-lg text-text mb-1">{allDone ? 'Dag voltooid' : 'Taken vandaag'}</h2>
+            <p className="tnum text-text-secondary text-sm">{completedCount} van de {totalCount} voltooid</p>
+            {state.streaks.ultimate.currentStreak > 0 && (
+              <div className="flex items-center gap-1.5 mt-2 text-accent-strong">
+                <Flame size={14} />
+                <span className="tnum text-sm font-semibold">{state.streaks.ultimate.currentStreak} dagen op rij</span>
+              </div>
             )}
           </div>
-          <m.div
-            animate={state.streaks.ultimate.currentStreak > 0 ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="text-6xl drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]"
-          >
-            {state.streaks.ultimate.currentStreak > 0 ? '👑' : '💤'}
-          </m.div>
+          <ProgressRing percentage={completionPct} size={68} strokeWidth={6} label={`${completionPct}%`} />
         </m.div>
 
-        {/* Sub-streaks */}
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="grid grid-cols-3 gap-3"
-        >
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3 flex flex-col items-center">
-            <span className="text-xl mb-1">🏆</span>
-            <span className="text-xl font-bold">{state.streaks.routine.currentStreak}</span>
-            <span className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">Routine</span>
-          </div>
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3 flex flex-col items-center">
-            <span className="text-xl mb-1">🕌</span>
-            <span className="text-xl font-bold">{state.streaks.prayer.currentStreak}</span>
-            <span className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">Gebeden</span>
-          </div>
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3 flex flex-col items-center">
-            <span className="text-xl mb-1">🛡️</span>
-            <span className="text-xl font-bold">{state.streaks.cleansoul.currentStreak}</span>
-            <span className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">Clean Soul</span>
-          </div>
-        </m.div>
-
-        {/* Progress ring */}
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className={`relative overflow-hidden rounded-3xl p-5 border flex items-center justify-between
-            ${allDone
-              ? 'bg-gradient-to-br from-violet-900/60 to-violet-800/40 border-violet-500/30 pulse-glow'
-              : 'bg-white/[0.04] border-white/10'
-            }`}
-        >
-          <div>
-            <h3 className="font-bold text-lg mb-1">{allDone ? 'Dag Voltooid! 🎉' : 'Taken vandaag'}</h3>
-            <p className="text-white/50 text-sm">{completedCount} van de {totalCount} voltooid</p>
-          </div>
-          <ProgressRing percentage={completionPct} size={70} strokeWidth={6} label={`${completionPct}%`} />
-        </m.div>
-
-        {/* Empty Blueprint State */}
+        {/* Empty blueprint state */}
         {state.taskBlueprint.length === 0 && (
           <m.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25 }}
-            className="border border-white/10 bg-white/[0.04] rounded-3xl p-6 text-center"
-          >
-            <div className="text-4xl mb-3">🌱</div>
-            <h3 className="text-white font-bold text-lg mb-1">Klaar voor een nieuwe start?</h3>
-            <p className="text-white/50 text-sm">Je hebt nog geen taken ingesteld. Ga naar je Profiel om je Routine te bouwen.</p>
-          </m.div>
-        )}
-
-        {/* Quick tasks + Frog */}
-        {!allDone && state.taskBlueprint.length > 0 && (frogTask || quickTasksBase.length > 0) && (
-          <m.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.15 }}
+            className="border border-border bg-surface rounded-card p-6 text-center"
           >
-            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-4 h-px bg-white/20" />
-              Volgende taken
-            </h2>
-            <div className="flex flex-col gap-2">
-              {/* Frog first */}
-              {frogTask && !frogTask.completed && (
-                <TaskCard key={frogTask.id} task={frogTask} onToggle={toggleTask} isFrog />
-              )}
-              {quickTasksBase.map(task => (
-                <TaskCard key={task.id} task={task} onToggle={toggleTask} />
-              ))}
-            </div>
+            <div className="text-3xl mb-3">🌱</div>
+            <h3 className="text-text font-semibold text-base mb-1">Klaar voor een nieuwe start?</h3>
+            <p className="text-text-tertiary text-sm">Je hebt nog geen taken ingesteld. Ga naar Profiel om je routine te bouwen.</p>
           </m.div>
         )}
 
-        {/* Category mini-bars */}
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-4 gap-2"
-        >
-          {[
-            { label: 'Gebed', icon: '🕌', tasks: prayerTasks, color: 'text-amber-500' },
-            { label: 'Ochtend', icon: '🌅', tasks: morningTasks, color: 'text-amber-400' },
-            { label: 'Dag', icon: '📅', tasks: dailyTasks, color: 'text-sky-400' },
-            { label: 'Avond', icon: '🌙', tasks: eveningTasks, color: 'text-purple-400' },
-          ].map(({ label, icon, tasks, color }) => {
-            const done = tasks.filter(t => t.completed).length;
-            const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
-            return (
-              <div key={label} className="bg-white/[0.03] border border-white/10 rounded-2xl p-2 text-center">
-                <div className={`${color} flex justify-center mb-1 text-sm`}>{icon}</div>
-                <div className="text-white font-bold text-xs">{done}/{tasks.length}</div>
-                <div className="mt-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                  <m.div
-                    className={`h-full rounded-full ${pct === 100 ? 'bg-green-500' : 'bg-violet-500'}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </m.div>
+        {/* Full checklist */}
+        {state.taskBlueprint.length > 0 && (
+          <m.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="space-y-2.5"
+          >
+            <RoutineSection
+              title="Gebeden"
+              emoji="🕌"
+              tasks={prayerTasks}
+              onToggle={toggleTask}
+              accentColor="var(--color-prayer)"
+              defaultOpen
+              frogTaskId={state.frogTaskId}
+            />
+            <RoutineSection
+              title="Ochtendroutine"
+              emoji="🌅"
+              tasks={morningTasks}
+              onToggle={toggleTask}
+              accentColor="var(--color-accent)"
+              defaultOpen
+              frogTaskId={state.frogTaskId}
+            />
+            <RoutineSection
+              title="Dagelijkse taken"
+              emoji="📅"
+              tasks={dailyTasks}
+              onToggle={toggleTask}
+              accentColor="var(--color-accent)"
+              defaultOpen
+              frogTaskId={state.frogTaskId}
+            />
+            <RoutineSection
+              title="Avondroutine"
+              emoji="🌙"
+              tasks={eveningTasks}
+              onToggle={toggleTask}
+              accentColor="var(--color-accent)"
+              defaultOpen={false}
+              frogTaskId={state.frogTaskId}
+            />
+            <RoutineSection
+              title="Clean Soul"
+              emoji="🛡️"
+              tasks={cleanSoulTasks}
+              onToggle={toggleTask}
+              accentColor="var(--color-cleansoul)"
+              defaultOpen
+              frogTaskId={state.frogTaskId}
+            />
+          </m.div>
+        )}
+
+        <p className="text-center text-text-tertiary text-xs pb-2">
+          Taken resetten automatisch om middernacht
+        </p>
       </div>
     </>
   );
