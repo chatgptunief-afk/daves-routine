@@ -1,51 +1,69 @@
 @import "tailwindcss";
 
 /*
-  "First Light" — the app is about the discipline that happens at dawn
-  (Fajr, waking without snooze, the cold shower) and the warmth earned
-  for it. Cool pre-dawn near-black base. One warm ember accent for
-  ignition/action. Dusk-indigo for prayer (the sky, not the sun).
-  Sage for growth/purity. Three hues, one story — not a decorative palette.
+  "Dagboog" — de dag heeft een boog, van Fajr tot Isha. De achtergrond IS de lucht en de
+  lucht IS de klok (zie Atmosphere-component). Ember = actie/licht (de zon). Dusk = gebed
+  (de lucht vóór en na het licht). Grove = zuiverheid (wat groeit). Nooit rood voor falen,
+  nooit groen voor succes — succes is licht. Zie DAVES-ROUTINE-REDESIGN.md §23-26.
 */
 @theme {
-  --color-bg: #0c0b10;
-  --color-surface: #151319;
-  --color-surface-2: #1c1a22;
-  --color-border: rgba(240, 236, 247, 0.07);
-  --color-border-strong: rgba(240, 236, 247, 0.14);
+  /* ink — achtergronden, koel bijna-zwart */
+  --color-ink-900: #07070C;
+  --color-ink-850: #0A0A0F;
+  --color-ink-800: #14131A;
+  --color-ink-700: #16151E;
+  --color-ink-600: #1E1C27;
 
-  --color-text: #f2ede4;
-  --color-text-secondary: rgba(242, 237, 228, 0.66);
-  --color-text-tertiary: rgba(242, 237, 228, 0.54);
+  /* paper — tekst, warm gebroken wit */
+  --color-paper: #F5F1E8;
+  --color-paper-72: rgba(245, 241, 232, 0.72);
+  --color-paper-56: rgba(245, 241, 232, 0.56);
+  --color-paper-44: rgba(245, 241, 232, 0.44); /* DECORATIEF — nooit tekst */
 
-  /* Ember — ignition, action, the sun breaking the horizon */
-  --color-accent: #e2914a;
-  --color-accent-strong: #f0ab6b;
-  --color-accent-soft: rgba(226, 145, 74, 0.14);
-  --color-accent-ink: #2b1607;
+  --color-line: rgba(245, 241, 232, 0.08);
+  --color-line-strong: rgba(245, 241, 232, 0.14);
 
-  /* Dusk indigo — prayer, the sky before and after light */
-  --color-prayer: #8d89c8;
-  --color-prayer-soft: rgba(141, 137, 200, 0.14);
+  /* Ember — actie, licht, de zon. Ritme-domein. */
+  --color-ember-400: #F2AC6E;
+  --color-ember-500: #E8934A;
+  --color-ember-600: #C9752F;
+  --color-ember-ink: #2A1607;
+  --color-ember-soft: rgba(232, 147, 74, 0.12);
 
-  /* Sage — Clean Soul, growth, what's tended */
-  --color-cleansoul: #7fa47a;
-  --color-cleansoul-soft: rgba(127, 164, 122, 0.14);
+  /* Dusk indigo — gebed, de lucht vóór en na het licht */
+  --color-dusk-400: #A6A7E4;
+  --color-dusk-500: #8E8FD6;
+  --color-dusk-soft: rgba(142, 143, 214, 0.12);
 
-  --color-danger: #c96a5c;
-  --color-danger-soft: rgba(201, 106, 92, 0.14);
+  /* Grove — zuiverheid, wat groeit */
+  --color-grove-400: #96C0A2;
+  --color-grove-500: #7CA98A;
+  --color-grove-soft: rgba(124, 169, 138, 0.12);
 
-  --radius-control: 0.75rem;
-  --radius-card: 1.25rem;
-  --radius-sheet: 1.75rem;
+  /* Clay — destructieve bevestiging. ALLEEN daarvoor. Nooit voor gemiste taken. */
+  --color-clay-500: #C97A63;
+
+  --radius-control: 10px;
+  --radius-field: 16px;
+  --radius-card: 20px;
+  --radius-sheet: 28px;
 
   --font-sans: var(--font-inter), sans-serif;
-  --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  --font-display: var(--font-newsreader), Georgia, serif;
 }
 
 :root {
+  --dur-instant: 100ms;
+  --dur-fast: 160ms;
+  --dur-base: 220ms;
+  --dur-slow: 320ms;
+  --dur-sheet: 420ms;
+  --dur-ceremony: 900ms;
+  --dur-atmos: 1200ms;
+
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-in-out-strong: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 * {
@@ -59,8 +77,8 @@ html {
 
 body {
   font-family: var(--font-inter), sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--color-ink-850);
+  color: var(--color-paper);
   overscroll-behavior: none;
   font-feature-settings: 'tnum' 1, 'cv11' 1;
 }
@@ -69,7 +87,7 @@ body {
   font-family: var(--font-display);
 }
 
-/* Safe area for iOS */
+/* Safe area voor iOS */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -82,27 +100,37 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(240, 236, 247, 0.1);
+  background: rgba(245, 241, 232, 0.1);
   border-radius: 9999px;
 }
 
-/* Tabular numerals for anything that ticks/updates */
+/* Tabelnummers voor alles dat telt/optikt */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Press feedback for tappable elements */
+/* Drukfeedback voor tikbare elementen */
 .tap {
-  transition: transform 160ms var(--ease-out-strong);
+  transition: transform var(--dur-instant) var(--ease-out-strong);
 }
 .tap:active {
   transform: scale(0.97);
 }
 
-/* Hairline divider, used instead of wrapping every group in a card */
+/* Hairline-scheiding i.p.v. elke groep in een kaart te wikkelen */
 .divider {
   height: 1px;
-  background: var(--color-border);
+  background: var(--color-line);
+}
+
+/* Eyebrow-label (§24.2) */
+.eyebrow {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-paper-56);
 }
 
 @media (prefers-reduced-motion: reduce) {

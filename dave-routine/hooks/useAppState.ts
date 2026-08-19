@@ -1,183 +1,259 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
-import { AppState, Task } from '@/types';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { AppState, Task, Goal, LogEntry, PrayerTimes } from '@/types';
 import {
-  loadState, saveState, getCompletionPercentage, updateStreakOnComplete,
+  loadState, saveState, getCompletionPercentage, computeStreak, consecutiveMissedDays,
+  computeDayRecord, computePurityStreak,
 } from '@/lib/storage';
-import { getTodayDateString } from '@/lib/tasks';
+import { todayString, weekday } from '@/lib/date';
+import { calculatePrayerTimes, manualToPrayerTimes, DEFAULT_MANUAL_TIMES } from '@/lib/prayerTimes';
+
+function resolvePrayerTimes(state: AppState): PrayerTimes {
+  const today = todayString();
+  if (state.prayerTimesCache && state.prayerTimesCache.date === today) return state.prayerTimesCache;
+
+  if (state.settings.prayerTimeSource === 'calculated' && state.settings.location) {
+    const tzOffsetHours = -new Date().getTimezoneOffset() / 60;
+    return calculatePrayerTimes(today, state.settings.location, tzOffsetHours);
+  }
+  return manualToPrayerTimes(today, state.settings.manualPrayerTimes ?? DEFAULT_MANUAL_TIMES);
+}
 
 export function useAppState() {
   const [state, setState] = useState<AppState | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     loadState().then(loaded => {
-      setState(loaded);
+      const times = resolvePrayerTimes(loaded);
+      setState({ ...loaded, prayerTimesCache: times });
       setIsLoaded(true);
     });
+  }, []);
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(t => (t === msg ? null : t)), 2400);
   }, []);
 
   const updateState = useCallback((updater: (prev: AppState) => AppState) => {
     setState(prev => {
       if (!prev) return prev;
       const next = updater(prev);
-      // Fire and forget save to IDB
-      saveState(next).catch(console.error);
+      saveState(next).catch(() => showToast('Kon niet opslaan — je wijziging staat nog in dit scherm.'));
       return next;
     });
-  }, []);
+  }, [showToast]);
 
-  // Toggle task: award coins when a full CATEGORY is completed, remove when uncompleted
+  // Houdt de gebedstijden-cache vers: herberekent zodra de dag verandert (sessie bleef open
+  // over middernacht) of zodra instellingen 'm hebben leeggemaakt. Stopt vanzelf na één pas.
+  useEffect(() => {
+    if (!state) return;
+    const today = todayString();
+    if (!state.prayerTimesCache || state.prayerTimesCache.date !== today) {
+      const times = resolvePrayerTimes(state);
+      setState(prev => (prev ? { ...prev, prayerTimesCache: times } : prev));
+    }
+  }, [state]);
+
+  // ---- Taken ----
+
   const toggleTask = useCallback((taskId: string) => {
     updateState(prev => {
+      const updatedTasks = prev.todayTasks.map(t => (t.id === taskId ? { ...t, completed: !t.completed } : t));
       const task = prev.todayTasks.find(t => t.id === taskId);
-      if (!task) return prev;
+      let logEntries = prev.logEntries;
 
-      const wasCompleted = task.completed;
-      const updatedTasks = prev.todayTasks.map(t =>
-        t.id === taskId ? { ...t, completed: !t.completed } : t
-      );
-
-      // XP per task as before
-      const xpDelta = wasCompleted ? -10 : 10;
-      const catKey = task.category;
-      const currentXP = prev.categoryXP[catKey] ?? 0;
-
-      // Coin logic: check if this task completing/uncompleting changes the category's done state
-      // Map categories to streak groups
-      const routineCategories = ['morning', 'daily', 'evening'];
-      const isRoutineCat = routineCategories.includes(task.category);
-      const isPrayerCat = task.category === 'prayer';
-      const isCleanSoulCat = task.category === 'cleansoul';
-
-      // Check BEFORE and AFTER state for the relevant group
-      function isCategoryGroupDone(tasks: typeof prev.todayTasks, cats: string[]): boolean {
-        const groupTasks = tasks.filter(t => cats.includes(t.category));
-        return groupTasks.length > 0 && groupTasks.every(t => t.completed);
+      // Als een taak aan een doel hangt, log automatisch een LogEntry bij het aanvinken
+      // (en verwijder de bijbehorende auto-entry bij uitvinken — nooit dubbel tellen).
+      if (task?.goalId && task.amountPerCompletion) {
+        const today = todayString();
+        if (!task.completed) {
+          const entry: LogEntry = {
+            id: `auto-${task.id}-${today}`, goalId: task.goalId, date: today,
+            amount: task.amountPerCompletion, source: 'task',
+          };
+          logEntries = [...logEntries.filter(e => e.id !== entry.id), entry];
+        } else {
+          logEntries = logEntries.filter(e => e.id !== `auto-${task.id}-${today}`);
+        }
       }
 
-      const routineCats = ['morning', 'daily', 'evening'];
-      const prayerCats = ['prayer'];
-      const cleanSoulCats = ['cleansoul'];
-
-      const wasDoneRoutine = isCategoryGroupDone(prev.todayTasks, routineCats);
-      const wasDonePrayer = isCategoryGroupDone(prev.todayTasks, prayerCats);
-      const wasDoneCleanSoul = isCategoryGroupDone(prev.todayTasks, cleanSoulCats);
-
-      const isNowDoneRoutine = isCategoryGroupDone(updatedTasks, routineCats);
-      const isNowDonePrayer = isCategoryGroupDone(updatedTasks, prayerCats);
-      const isNowDoneCleanSoul = isCategoryGroupDone(updatedTasks, cleanSoulCats);
-
-      // Coin delta: +1 if group just became done, -1 if group just became undone
-      let coinDelta = 0;
-      if (isRoutineCat) coinDelta += (isNowDoneRoutine ? 1 : 0) - (wasDoneRoutine ? 1 : 0);
-      if (isPrayerCat) coinDelta += (isNowDonePrayer ? 1 : 0) - (wasDonePrayer ? 1 : 0);
-      if (isCleanSoulCat) coinDelta += (isNowDoneCleanSoul ? 1 : 0) - (wasDoneCleanSoul ? 1 : 0);
-
-      const newState = {
-        ...prev,
-        todayTasks: updatedTasks,
-        soulCoins: Math.max(0, (prev.soulCoins ?? 0) + coinDelta),
-        categoryXP: {
-          ...prev.categoryXP,
-          [catKey]: Math.max(0, currentXP + xpDelta),
-        },
-      };
-      return updateStreakOnComplete(newState);
+      return { ...prev, todayTasks: updatedTasks, logEntries };
     });
   }, [updateState]);
 
-
-  const toggleNotifications = useCallback(() => {
-    updateState(prev => ({ ...prev, notificationsEnabled: !prev.notificationsEnabled }));
+  const skipTask = useCallback((taskId: string) => {
+    updateState(prev => ({
+      ...prev,
+      todayTasks: prev.todayTasks.filter(t => t.id !== taskId),
+    }));
   }, [updateState]);
 
-  // Profile management
+  const addTask = useCallback((task: Omit<Task, 'completed'>) => {
+    updateState(prev => {
+      const full: Task = { ...task, completed: false };
+      const today = todayString();
+      const belongsToday = task.days.includes(weekday(today));
+      return {
+        ...prev,
+        taskBlueprint: [...prev.taskBlueprint, full],
+        todayTasks: belongsToday ? [...prev.todayTasks, full] : prev.todayTasks,
+      };
+    });
+  }, [updateState]);
+
+  const updateTask = useCallback((taskId: string, patch: Partial<Omit<Task, 'id' | 'completed'>>) => {
+    updateState(prev => ({
+      ...prev,
+      taskBlueprint: prev.taskBlueprint.map(t => (t.id === taskId ? { ...t, ...patch } : t)),
+      todayTasks: prev.todayTasks.map(t => (t.id === taskId ? { ...t, ...patch } : t)),
+    }));
+  }, [updateState]);
+
+  const archiveTask = useCallback((taskId: string) => {
+    updateState(prev => ({
+      ...prev,
+      taskBlueprint: prev.taskBlueprint.map(t => (t.id === taskId ? { ...t, archivedAt: todayString() } : t)),
+      todayTasks: prev.todayTasks.filter(t => t.id !== taskId),
+      ankerIds: prev.ankerIds.filter(id => id !== taskId),
+      frogTaskId: prev.frogTaskId === taskId ? null : prev.frogTaskId,
+    }));
+  }, [updateState]);
+
+  const reorderTasks = useCallback((taskIds: string[]) => {
+    updateState(prev => {
+      const orderMap = new Map(taskIds.map((id, i) => [id, i]));
+      const reorder = (t: Task) => ({ ...t, order: orderMap.get(t.id) ?? t.order });
+      return {
+        ...prev,
+        taskBlueprint: prev.taskBlueprint.map(reorder),
+        todayTasks: prev.todayTasks.map(reorder),
+      };
+    });
+  }, [updateState]);
+
+  // ---- Ankers ----
+
+  const setAnkerIds = useCallback((ids: string[]) => {
+    updateState(prev => ({ ...prev, ankerIds: ids.slice(0, 5) }));
+  }, [updateState]);
+
+  // ---- Eerste Steen ----
+
+  const chooseFirstStone = useCallback((taskId: string | null) => {
+    updateState(prev => ({ ...prev, frogTaskId: taskId }));
+  }, [updateState]);
+
+  // ---- Doelen ----
+
+  const addGoal = useCallback((goal: Omit<Goal, 'id'>) => {
+    updateState(prev => ({ ...prev, goals: [...prev.goals, { ...goal, id: `goal-${Date.now()}` }] }));
+  }, [updateState]);
+
+  const updateGoal = useCallback((goalId: string, patch: Partial<Omit<Goal, 'id'>>) => {
+    updateState(prev => ({ ...prev, goals: prev.goals.map(g => (g.id === goalId ? { ...g, ...patch } : g)) }));
+  }, [updateState]);
+
+  const archiveGoal = useCallback((goalId: string) => {
+    updateState(prev => ({ ...prev, goals: prev.goals.map(g => (g.id === goalId ? { ...g, archivedAt: todayString() } : g)) }));
+  }, [updateState]);
+
+  const logGoalEntry = useCallback((goalId: string, amount: number, note?: string) => {
+    updateState(prev => ({
+      ...prev,
+      logEntries: [...prev.logEntries, {
+        id: `log-${Date.now()}`, goalId, date: todayString(), amount, note, source: 'manual',
+      }],
+    }));
+  }, [updateState]);
+
+  // ---- Dagafsluiting ----
+
+  const completeDagafsluiting = useCallback((reflection: string, tomorrowsFirstStoneId: string | null) => {
+    // reflectie + gekozen eerste steen worden bewaard; computeDayRecord leest ze uit
+    // AppState.pendingReflection / frogTaskId bij de eerstvolgende rollover (middernacht).
+    updateState(prev => ({
+      ...prev,
+      frogTaskId: tomorrowsFirstStoneId,
+      pendingReflection: reflection || null,
+    }));
+    showToast('Dag afgesloten.');
+  }, [updateState, showToast]);
+
+  // ---- Profiel / instellingen ----
+
   const setUserName = useCallback((name: string) => {
     updateState(prev => ({ ...prev, userName: name }));
   }, [updateState]);
 
-  const addTask = useCallback((task: Task) => {
-    updateState(prev => ({
-      ...prev,
-      taskBlueprint: [...prev.taskBlueprint, task],
-      todayTasks: [...prev.todayTasks, task],
-    }));
+  const setIdentityStatement = useCallback((statement: string) => {
+    updateState(prev => ({ ...prev, identityStatement: statement }));
   }, [updateState]);
 
-  const deleteTask = useCallback((taskId: string) => {
-    updateState(prev => {
-      const newBlueprint = prev.taskBlueprint.filter(t => t.id !== taskId);
-      const newToday = prev.todayTasks.filter(t => t.id !== taskId);
-      // Clear frog if it was the deleted task
-      const newFrogId = prev.frogTaskId === taskId ? null : prev.frogTaskId;
-      const newState = { ...prev, taskBlueprint: newBlueprint, todayTasks: newToday, frogTaskId: newFrogId };
-      return updateStreakOnComplete(newState);
-    });
+  const updateSettings = useCallback((patch: Partial<AppState['settings']>) => {
+    updateState(prev => ({ ...prev, settings: { ...prev.settings, ...patch }, prayerTimesCache: null }));
   }, [updateState]);
 
-  // Soul Coins: buy streak freeze (50 coins, max 3)
-  const buyFreeze = useCallback(() => {
-    updateState(prev => {
-      const currentFreezes = prev.freezes ?? 0;
-      if (currentFreezes >= 3) return prev;
-      if ((prev.soulCoins ?? 0) < 50) return prev;
-      return {
-        ...prev,
-        soulCoins: prev.soulCoins - 50,
-        freezes: currentFreezes + 1,
-      };
-    });
+  const toggleNotifications = useCallback(() => {
+    updateState(prev => ({ ...prev, settings: { ...prev.settings, notificationsEnabled: !prev.settings.notificationsEnabled } }));
   }, [updateState]);
 
-  // Frog of the Day
-  const setFrogTask = useCallback((taskId: string | null) => {
-    updateState(prev => ({ ...prev, frogTaskId: taskId }));
+  const completeOnboarding = useCallback(() => {
+    updateState(prev => ({ ...prev, onboardingComplete: true }));
   }, [updateState]);
 
-  // Daily Check-in: mark today as checked in
   const markCheckinDone = useCallback(() => {
-    updateState(prev => ({ ...prev, lastCheckinDate: getTodayDateString() }));
+    updateState(prev => ({ ...prev, lastCheckinDate: todayString() }));
   }, [updateState]);
 
-  // Derived values
+  // ---- Afgeleide waarden ----
+
   const completedCount = state?.todayTasks.filter(t => t.completed).length ?? 0;
   const totalCount = state?.todayTasks.length ?? 0;
   const completionPct = state ? getCompletionPercentage(state.todayTasks) : 0;
 
-  const morningTasks = state?.todayTasks.filter(t => t.category === 'morning') ?? [];
-  const dailyTasks = state?.todayTasks.filter(t => t.category === 'daily') ?? [];
-  const eveningTasks = state?.todayTasks.filter(t => t.category === 'evening') ?? [];
-  const prayerTasks = state?.todayTasks.filter(t => t.category === 'prayer') ?? [];
-  const cleanSoulTasks = state?.todayTasks.filter(t => t.category === 'cleansoul') ?? [];
+  const gebedTasks = useMemo(() => state?.todayTasks.filter(t => t.domain === 'gebed').sort((a, b) => a.order - b.order) ?? [], [state]);
+  const zuiverheidTasks = useMemo(() => state?.todayTasks.filter(t => t.domain === 'zuiverheid') ?? [], [state]);
+  const ritmeTasks = useMemo(() => state?.todayTasks.filter(t => t.domain === 'ritme').sort((a, b) => a.order - b.order) ?? [], [state]);
 
-  const allDone = state?.streaks.ultimate.history[state?.lastResetDate] ?? false;
+  const ankerTasks = useMemo(
+    () => (state ? ritmeTasks.filter(t => state.ankerIds.includes(t.id)) : []),
+    [state, ritmeTasks]
+  );
+  const ankersCompletedCount = ankerTasks.filter(t => t.completed).length;
+  const allAnkersDone = ankerTasks.length > 0 && ankerTasks.every(t => t.completed);
 
-  const needsCheckin = state
-    ? state.lastCheckinDate !== getTodayDateString()
-    : false;
+  const firstStoneTask = state?.frogTaskId
+    ? state.todayTasks.find(t => t.id === state.frogTaskId) ?? null
+    : null;
 
+  const streak = useMemo(() => (state ? computeStreak(state.history) : { current: 0, longest: 0, ritme30: 0 }), [state]);
+  const missedDaysInARow = useMemo(() => (state ? consecutiveMissedDays(state.history) : 0), [state]);
+  const purityStreak = useMemo(() => (state ? computePurityStreak(state.history) : 0), [state]);
+
+  const todayPreview = useMemo(() => (state ? computeDayRecord(state, todayString()) : null), [state]);
 
   return {
     state,
     isLoaded,
-    toggleTask,
-    toggleNotifications,
-    setUserName,
-    addTask,
-    deleteTask,
-    buyFreeze,
-    setFrogTask,
-    markCheckinDone,
-    needsCheckin,
-    completedCount,
-    totalCount,
-    completionPct,
-    allDone,
-    morningTasks,
-    dailyTasks,
-    eveningTasks,
-    prayerTasks,
-    cleanSoulTasks,
+    toast,
+    // taken
+    toggleTask, skipTask, addTask, updateTask, archiveTask, reorderTasks,
+    // ankers
+    setAnkerIds, ankerTasks, ankersCompletedCount, allAnkersDone,
+    // eerste steen
+    chooseFirstStone, firstStoneTask,
+    // doelen
+    addGoal, updateGoal, archiveGoal, logGoalEntry,
+    // dagafsluiting
+    completeDagafsluiting,
+    // profiel
+    setUserName, setIdentityStatement, updateSettings, toggleNotifications, completeOnboarding, markCheckinDone,
+    // afgeleid
+    completedCount, totalCount, completionPct,
+    gebedTasks, zuiverheidTasks, ritmeTasks,
+    streak, missedDaysInARow, todayPreview, purityStreak,
   };
 }

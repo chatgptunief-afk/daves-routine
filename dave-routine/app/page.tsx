@@ -1,219 +1,157 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useAppState } from '@/hooks/useAppState';
-import { ProgressRing } from '@/components/ui/ProgressRing';
-import { m, AnimatePresence } from 'framer-motion';
-import { Bell, Coins, Flame } from 'lucide-react';
-import { RoutineSection } from '@/components/ui/RoutineSection';
-import { FrogSpotlight } from '@/components/ui/FrogSpotlight';
-import { OpeningRitual } from '@/components/ui/OpeningRitual';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Wind, Moon } from 'lucide-react';
+import { useApp } from '@/components/AppStateProvider';
+import { Arc } from '@/components/ui/Arc';
+import { EersteSteenField } from '@/components/ui/EersteSteenField';
+import { GebedGroup } from '@/components/ui/GebedGroup';
+import { PhaseGroup } from '@/components/ui/PhaseGroup';
+import { ZuiverheidField } from '@/components/ui/ZuiverheidField';
+import { GoalChip } from '@/components/ui/GoalChip';
+import { LogSheet } from '@/components/ui/LogSheet';
+import { Dagafsluiting } from '@/components/ui/Dagafsluiting';
+import { Herstel } from '@/components/ui/Herstel';
+import { Breathing } from '@/components/ui/Breathing';
+import { MomentOverlay, type MomentContent } from '@/components/ui/MomentOverlay';
+import { Toast } from '@/components/ui/Toast';
+import { getCurrentPhase, momentLine } from '@/lib/phase';
+import { dateLabel, addDays, weekday, timeStringToDate } from '@/lib/date';
+import { tasksForWeekday } from '@/lib/tasks';
+import { Goal, Phase } from '@/types';
 
-const DAYS_NL = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
-const MONTHS_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+export default function VandaagPage() {
+  const router = useRouter();
+  const app = useApp();
+  const { state, isLoaded, toast, toggleTask, completeDagafsluiting, markCheckinDone, logGoalEntry } = app;
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Goedemorgen';
-  if (h < 17) return 'Goedemiddag';
-  return 'Goedenavond';
-}
-
-function getDateLabel() {
-  const d = new Date();
-  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
-}
-
-function getStatusLine(completed: number, total: number, allDone: boolean) {
-  if (total === 0) return '';
-  if (allDone) return 'Elke taak is voltooid';
-  if (completed === 0) return 'Tijd om te beginnen';
-  const remaining = total - completed;
-  return `Nog ${remaining} taak${remaining === 1 ? '' : 'en'} te gaan`;
-}
-
-export default function TodayPage() {
-  const {
-    state, isLoaded, toggleTask, toggleNotifications, markCheckinDone, needsCheckin,
-    completedCount, totalCount, completionPct, allDone,
-    morningTasks, dailyTasks, eveningTasks, prayerTasks, cleanSoulTasks,
-  } = useAppState();
-
-  const coins = state?.soulCoins ?? 0;
-  const [prevCoinsSeen, setPrevCoinsSeen] = useState(coins);
-  const [showCoinToast, setShowCoinToast] = useState(false);
-
-  if (coins !== prevCoinsSeen) {
-    setPrevCoinsSeen(coins);
-    if (coins > prevCoinsSeen) setShowCoinToast(true);
-  }
+  const [now, setNow] = useState<Date | null>(null);
+  const [breathingOpen, setBreathingOpen] = useState(false);
+  const [dagafsluitingOpen, setDagafsluitingOpen] = useState(false);
+  const [logGoal, setLogGoal] = useState<Goal | null>(null);
+  const [moment, setMoment] = useState<MomentContent | null>(null);
+  const wasAllDone = useRef(false);
 
   useEffect(() => {
-    if (!showCoinToast) return;
-    const t = setTimeout(() => setShowCoinToast(false), 2200);
-    return () => clearTimeout(t);
-  }, [showCoinToast]);
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
-  const [prevAllDone, setPrevAllDone] = useState(allDone);
-  const [showDayComplete, setShowDayComplete] = useState(false);
-  if (allDone !== prevAllDone) {
-    setPrevAllDone(allDone);
-    if (allDone) setShowDayComplete(true);
-  }
   useEffect(() => {
-    if (!showDayComplete) return;
-    const t = setTimeout(() => setShowDayComplete(false), 2800);
-    return () => clearTimeout(t);
-  }, [showDayComplete]);
+    if (isLoaded && state && !state.onboardingComplete) router.replace('/welkom');
+  }, [isLoaded, state, router]);
 
-  if (!isLoaded || !state) {
+  useEffect(() => {
+    if (app.allAnkersDone && !wasAllDone.current) {
+      setMoment({ number: `${app.streak.current + 1}`, line: 'Alle ankers staan. De dag is gemaakt.' });
+    }
+    wasAllDone.current = app.allAnkersDone;
+  }, [app.allAnkersDone, app.streak.current]);
+
+  if (!isLoaded || !state || !now || !state.prayerTimesCache) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-7 h-7 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      <div className="pt-16 text-center">
+        <p className="text-paper-56 text-[14px]">Laden...</p>
       </div>
     );
   }
 
-  const frogTask = state.frogTaskId
-    ? state.todayTasks.find(t => t.id === state.frogTaskId) ?? null
-    : null;
+  const times = state.prayerTimesCache;
+  const currentPhase = getCurrentPhase(now, times);
+  const phaseForGroup = (p: Phase): 'ochtend' | 'doorlopend' | 'avond' => {
+    if (p === 'fajr' || p === 'ochtend') return 'ochtend';
+    if (p === 'middag' || p === 'doorlopend') return 'doorlopend';
+    return 'avond';
+  };
+  const activeGroup = phaseForGroup(currentPhase);
 
-  const requestNotifications = () => {
-    if ('Notification' in window) {
-      Notification.requestPermission().then(perm => {
-        if (perm === 'granted') {
-          toggleNotifications();
-          new Notification('Notificaties geactiveerd!', {
-            body: `Je krijgt nu meldingen, ${state.userName}.`,
-            icon: '/icons/icon-192.png',
-          });
-        }
-      });
-    }
+  const prayersCompleted = {
+    fajr: !!app.gebedTasks.find(t => t.prayer === 'fajr')?.completed,
+    dhuhr: !!app.gebedTasks.find(t => t.prayer === 'dhuhr')?.completed,
+    asr: !!app.gebedTasks.find(t => t.prayer === 'asr')?.completed,
+    maghrib: !!app.gebedTasks.find(t => t.prayer === 'maghrib')?.completed,
+    isha: !!app.gebedTasks.find(t => t.prayer === 'isha')?.completed,
   };
 
+  const completionRatio = app.ankerTasks.length > 0 ? app.ankersCompletedCount / app.ankerTasks.length : 0;
+  const dayIsOver = now > timeStringToDate(times.date, times.isha);
+
+  const purityTask = app.zuiverheidTasks[0] ?? null;
+  const displayedPurityStreak = app.purityStreak + (purityTask?.completed ? 1 : 0);
+
+  const ochtendTasks = app.ritmeTasks.filter(t => phaseForGroup(t.phase) === 'ochtend');
+  const doorlopendTasks = app.ritmeTasks.filter(t => phaseForGroup(t.phase) === 'doorlopend');
+  const avondTasks = app.ritmeTasks.filter(t => phaseForGroup(t.phase) === 'avond');
+
+  const activeGoals = state.goals.filter(g => !g.archivedAt);
+
+  const nextDay = addDays(times.date, 1);
+  const tomorrowTaskList = tasksForWeekday(state.taskBlueprint, weekday(nextDay)).filter(t => t.domain === 'ritme');
+
   return (
-    <>
-      <OpeningRitual show={needsCheckin} userName={state.userName} onDone={markCheckinDone} />
+    <div className="pb-8">
+      <div className="flex items-start justify-between mb-1">
+        <div>
+          <p className="eyebrow mb-1">{dateLabel(times.date)}</p>
+          <p className="text-[15px] text-paper-72">{momentLine(now, times)}</p>
+        </div>
+        <button onClick={() => setBreathingOpen(true)} className="tap w-9 h-9 rounded-full flex items-center justify-center text-paper-56" aria-label="Adem">
+          <Wind size={18} strokeWidth={1.75} />
+        </button>
+      </div>
+
+      <div className="my-6">
+        <Arc now={now} times={times} completionRatio={completionRatio} prayersCompleted={prayersCompleted} />
+      </div>
+
+      {app.missedDaysInARow >= 2 && state.lastCheckinDate !== times.date && (
+        <Herstel missedDays={app.missedDaysInARow} onContinue={markCheckinDone} />
+      )}
 
       <div className="space-y-7">
-        {/* Header */}
-        <div className="flex justify-between items-start pt-1">
-          <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <p className="text-text-tertiary text-sm">{getDateLabel()}</p>
-            <h1 className="font-display text-[26px] font-semibold text-text mt-0.5 tracking-tight">
-              {getGreeting()}, {state.userName}
-            </h1>
-            <p className="text-text-secondary text-sm mt-1">{getStatusLine(completedCount, totalCount, allDone)}</p>
-          </m.div>
+        <EersteSteenField task={app.firstStoneTask} onToggle={toggleTask} dayIsOver={dayIsOver} />
 
-          <div className="flex items-center gap-2 pt-0.5 flex-shrink-0">
-            <div className="relative">
-              <div className="flex items-center gap-1.5 bg-accent-soft border border-accent/20 rounded-full px-2.5 py-1.5">
-                <Coins size={13} className="text-accent" />
-                <span className="tnum text-accent-strong font-semibold text-sm">{coins}</span>
-              </div>
-              <AnimatePresence>
-                {showCoinToast && (
-                  <m.div
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: -22 }}
-                    exit={{ opacity: 0, y: -32 }}
-                    transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                    className="absolute top-0 left-1/2 -translate-x-1/2 text-accent-strong font-bold text-xs whitespace-nowrap pointer-events-none"
-                  >
-                    +1
-                  </m.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <button
-              onClick={requestNotifications}
-              aria-label="Notificaties"
-              className={`tap p-2.5 rounded-full border ${state.notificationsEnabled ? 'bg-accent-soft border-accent/30 text-accent' : 'bg-surface border-border text-text-tertiary'}`}
-            >
-              <Bell size={18} />
-            </button>
+        <GebedGroup tasks={app.gebedTasks} times={times} now={now} onToggle={toggleTask} />
+
+        <ZuiverheidField task={purityTask} streakDays={displayedPurityStreak} onToggle={toggleTask} />
+
+        {activeGoals.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1">
+            {activeGoals.map(goal => (
+              <GoalChip key={goal.id} goal={goal} entries={state.logEntries} onTap={() => setLogGoal(goal)} />
+            ))}
           </div>
-        </div>
-
-        {/* Frog spotlight */}
-        {frogTask && (
-          <FrogSpotlight task={frogTask} onToggle={toggleTask} />
         )}
 
-        {/* Progress overview */}
-        <m.div
-          layout
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-          className="relative overflow-hidden rounded-card p-5 border flex items-center justify-between gap-4"
-          style={{
-            borderColor: allDone ? 'rgba(226,145,74,0.3)' : 'var(--color-border)',
-            background: allDone ? 'linear-gradient(160deg, rgba(226,145,74,0.14), rgba(21,19,25,0.5))' : 'var(--color-surface)',
-          }}
-        >
-          <AnimatePresence>
-            {showDayComplete && (
-              <m.div
-                initial={{ opacity: 0.8, scale: 0.4 }}
-                animate={{ opacity: 0, scale: 2.4 }}
-                transition={{ duration: 1.4, ease: [0.23, 1, 0.32, 1] }}
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(circle at 70% 30%, rgba(226,145,74,0.45), transparent 60%)' }}
-              />
-            )}
-          </AnimatePresence>
-
-          <div className="relative min-w-0">
-            <h2 className="font-display font-semibold text-lg text-text mb-1">
-              {allDone ? 'Perfecte dag' : 'Taken vandaag'}
-            </h2>
-            <p className="tnum text-text-secondary text-sm">{completedCount} van de {totalCount} voltooid</p>
-            {state.streaks.ultimate.currentStreak > 0 && (
-              <div className="flex items-center gap-1.5 mt-2 text-accent-strong">
-                <Flame size={14} />
-                <span className="tnum text-sm font-semibold">{state.streaks.ultimate.currentStreak} dagen op rij</span>
-              </div>
-            )}
-          </div>
-          <ProgressRing percentage={completionPct} size={68} strokeWidth={6} label={`${completionPct}%`} />
-        </m.div>
-
-        {/* Empty blueprint state */}
-        {state.taskBlueprint.length === 0 && (
-          <m.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="border border-border bg-surface rounded-card p-6 text-center"
-          >
-            <div className="text-3xl mb-3">🌱</div>
-            <h3 className="font-display text-text font-semibold text-base mb-1">Klaar voor een nieuwe start?</h3>
-            <p className="text-text-tertiary text-sm">Je hebt nog geen taken ingesteld. Ga naar Profiel om je routine te bouwen.</p>
-          </m.div>
-        )}
-
-        {/* Checklist */}
-        {state.taskBlueprint.length > 0 && (
-          <m.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-            className="space-y-6"
-          >
-            <RoutineSection title="Gebeden" emoji="🕌" tasks={prayerTasks} onToggle={toggleTask} accentColor="var(--color-prayer)" defaultOpen />
-            <RoutineSection title="Ochtendroutine" emoji="🌅" tasks={morningTasks} onToggle={toggleTask} accentColor="var(--color-accent)" defaultOpen />
-            <RoutineSection title="Dagelijkse taken" emoji="📅" tasks={dailyTasks} onToggle={toggleTask} accentColor="var(--color-accent)" defaultOpen />
-            <RoutineSection title="Avondroutine" emoji="🌙" tasks={eveningTasks} onToggle={toggleTask} accentColor="var(--color-accent)" defaultOpen={false} />
-            <RoutineSection title="Clean Soul" emoji="🛡️" tasks={cleanSoulTasks} onToggle={toggleTask} accentColor="var(--color-cleansoul)" defaultOpen />
-          </m.div>
-        )}
-
-        <p className="text-center text-text-tertiary text-xs pb-2">
-          Taken resetten automatisch om middernacht
-        </p>
+        <PhaseGroup title="Ochtend" tasks={ochtendTasks} ankerIds={state.ankerIds} onToggle={toggleTask} isCurrentPhase={activeGroup === 'ochtend'} />
+        <PhaseGroup title="Ritme" tasks={doorlopendTasks} ankerIds={state.ankerIds} onToggle={toggleTask} isCurrentPhase={activeGroup === 'doorlopend'} />
+        <PhaseGroup title="Avond" tasks={avondTasks} ankerIds={state.ankerIds} onToggle={toggleTask} isCurrentPhase={activeGroup === 'avond'} />
       </div>
-    </>
+
+      <button
+        onClick={() => setDagafsluitingOpen(true)}
+        className="tap w-full flex items-center justify-center gap-2 mt-8 h-11 rounded-control text-paper-56 text-[14px] border border-line"
+      >
+        <Moon size={15} strokeWidth={1.75} />
+        Dag afsluiten
+      </button>
+
+      <Breathing open={breathingOpen} onClose={() => setBreathingOpen(false)} />
+      <Dagafsluiting
+        open={dagafsluitingOpen}
+        onClose={() => setDagafsluitingOpen(false)}
+        tomorrowTasks={tomorrowTaskList}
+        currentFirstStoneId={state.frogTaskId}
+        onComplete={completeDagafsluiting}
+      />
+      <LogSheet
+        goal={logGoal}
+        onClose={() => setLogGoal(null)}
+        onSubmit={amount => { if (logGoal) logGoalEntry(logGoal.id, amount); setLogGoal(null); }}
+      />
+      <MomentOverlay content={moment} onDone={() => setMoment(null)} />
+      <Toast message={toast} />
+    </div>
   );
 }
