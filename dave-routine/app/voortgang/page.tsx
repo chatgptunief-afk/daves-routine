@@ -36,6 +36,8 @@ export default function VoortgangPage() {
   const last7 = getLast7Days();
   const today = getTodayDateString();
   const ultimateTodayCompleted = state.streaks.ultimate.history[today] || false;
+  const ultimate = state.streaks.ultimate;
+  const hasStreak = ultimate.currentStreak > 0;
 
   const rStreak = state.streaks.routine.currentStreak;
   const pStreak = state.streaks.prayer.currentStreak;
@@ -60,9 +62,9 @@ export default function VoortgangPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl font-bold text-text">Voortgang</h1>
+        <h1 className="font-display text-[26px] font-semibold text-text tracking-tight">Voortgang</h1>
         <p className="text-text-tertiary text-sm mt-0.5">Jouw consistentie over tijd</p>
       </m.div>
 
@@ -71,23 +73,34 @@ export default function VoortgangPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-        className="bg-surface border border-border rounded-card p-6 flex flex-col items-center text-center"
+        className="rounded-card p-6 flex flex-col items-center text-center border"
+        style={{
+          borderColor: hasStreak ? 'rgba(226,145,74,0.25)' : 'var(--color-border)',
+          background: hasStreak ? 'linear-gradient(160deg, rgba(226,145,74,0.1), rgba(21,19,25,0.5))' : 'var(--color-surface)',
+        }}
       >
         <div className="flex items-center gap-2 mb-3 text-accent-strong font-semibold text-sm">
           <Flame size={16} /> Ultimate streak
         </div>
-        <div className="tnum text-6xl font-black text-text leading-none mb-1" style={{ letterSpacing: '-0.02em' }}>
-          {state.streaks.ultimate.currentStreak}
+        <div className="font-display tnum text-7xl font-bold text-text leading-none mb-1 tracking-tight">
+          {ultimate.currentStreak}
         </div>
-        <p className="text-text-tertiary text-sm mb-4">dagen alles gehaald</p>
-        <div className="bg-accent-soft border border-accent/20 rounded-full px-4 py-1.5 text-xs text-accent-strong font-medium">
-          Record: {state.streaks.ultimate.longestStreak} dagen
-        </div>
+        <p className="text-text-tertiary text-sm mb-4">{ultimate.currentStreak === 1 ? 'dag alles gehaald' : 'dagen alles gehaald'}</p>
+
+        {hasStreak ? (
+          <div className="bg-accent-soft border border-accent/20 rounded-full px-4 py-1.5 text-xs text-accent-strong font-medium">
+            Record: {ultimate.longestStreak} dagen
+          </div>
+        ) : (
+          <p className="text-text-secondary text-xs max-w-[220px]">
+            Nog geen streak. Voltooi vandaag je taken en de eerste dag telt.
+          </p>
+        )}
       </m.div>
 
       {/* 7-day history */}
       <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
-        <h2 className="text-text font-semibold text-[15px] mb-3">Afgelopen 7 dagen</h2>
+        <h2 className="font-display text-text font-semibold text-[15px] mb-3">Afgelopen 7 dagen</h2>
         <div className="grid grid-cols-7 gap-1.5">
           {last7.map(({ date, dayLabel, isToday }, i) => {
             const completed = state.streaks.ultimate.history[date];
@@ -121,7 +134,7 @@ export default function VoortgangPage() {
 
       {/* Soul Estate */}
       <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
-        <h2 className="text-text font-semibold text-[15px] mb-1">Jouw wereld</h2>
+        <h2 className="font-display text-text font-semibold text-[15px] mb-1">Jouw wereld</h2>
         <p className="text-text-tertiary text-sm mb-3">Groeit mee met je discipline, dag na dag</p>
         <SoulVisualization routineStreak={rStreak} prayerStreak={pStreak} cleanSoulStreak={cStreak} />
       </m.div>
@@ -133,7 +146,7 @@ export default function VoortgangPage() {
         transition={{ delay: 0.2, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
         className="space-y-2.5"
       >
-        <h2 className="text-text font-semibold text-[15px]">Domeinen</h2>
+        <h2 className="font-display text-text font-semibold text-[15px]">Domeinen</h2>
 
         {domains.map(({ key, label, emoji, streak, current, next, color }) => {
           const maxThreshold = next ? next.threshold : 50;
@@ -147,7 +160,7 @@ export default function VoortgangPage() {
               <div className="flex justify-between items-start mb-3">
                 <div className="min-w-0">
                   <div className="text-text-tertiary text-xs font-medium mb-0.5">{label}</div>
-                  <div className="text-text font-semibold text-[15px]">{current.description}</div>
+                  <div className="font-display text-text font-semibold text-[15px]">{current.description}</div>
                 </div>
                 <div className="text-2xl flex-shrink-0">{emoji}</div>
               </div>

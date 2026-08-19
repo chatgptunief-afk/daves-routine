@@ -65,7 +65,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6 pb-6">
       <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl font-bold text-text">Profiel</h1>
+        <h1 className="font-display text-[26px] font-semibold text-text tracking-tight">Profiel</h1>
         <p className="text-text-tertiary text-sm mt-0.5">Beheer je routine en instellingen</p>
       </m.div>
 
@@ -97,7 +97,7 @@ export default function ProfilePage() {
           <div className="flex justify-between items-center">
             <div>
               <div className="text-xs text-text-tertiary mb-1">Je wordt aangesproken als</div>
-              <div className="text-xl font-bold text-text">{state.userName}</div>
+              <div className="font-display text-xl font-semibold text-text">{state.userName}</div>
             </div>
             <button
               onClick={() => { setEditName(state.userName); setIsEditingName(true); }}
@@ -126,10 +126,10 @@ export default function ProfilePage() {
       >
         <div className="flex items-center gap-2 mb-3">
           <Target size={15} className="text-accent" />
-          <h2 className="text-text font-semibold text-[15px]">Frog of the Day</h2>
+          <h2 className="font-display text-text font-semibold text-[15px]">Belangrijkste taak 🐸</h2>
         </div>
         <p className="text-text-tertiary text-xs mb-3.5 leading-relaxed">
-          Kies je belangrijkste taak voor vandaag. Die krijgt prioriteit bovenaan Vandaag.
+          Kies de ene taak die vandaag het meest telt. Die krijgt een eigen plek bovenaan Vandaag.
         </p>
         <select
           value={state.frogTaskId ?? ''}
@@ -153,7 +153,7 @@ export default function ProfilePage() {
         className="space-y-3"
       >
         <div className="flex justify-between items-center">
-          <h2 className="text-text font-semibold text-[15px]">Jouw routines</h2>
+          <h2 className="font-display text-text font-semibold text-[15px]">Jouw routines</h2>
           <button
             onClick={() => setIsAddingTask(!isAddingTask)}
             className="tap text-accent-strong bg-accent-soft px-3 py-1.5 rounded-control text-xs font-semibold flex items-center gap-1"
@@ -242,12 +242,12 @@ export default function ProfilePage() {
             if (catTasks.length === 0) return null;
             return (
               <div key={cat.key}>
-                <h3 className="text-text-tertiary text-[11px] font-semibold mb-1.5 pl-1">
+                <h3 className="text-text-tertiary text-[11px] font-semibold mb-1 pl-1">
                   {cat.label} ({catTasks.length})
                 </h3>
-                <div className="space-y-1.5">
+                <div>
                   {catTasks.map(task => (
-                    <div key={task.id} className="flex items-center justify-between bg-surface border border-border rounded-card p-3 px-4">
+                    <div key={task.id} className="flex items-center justify-between gap-3 py-2.5 border-b border-border last:border-b-0">
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-lg flex-shrink-0">{task.icon}</span>
                         <div className="min-w-0">

@@ -27,7 +27,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
   const showTropical = cleanSoulStreak >= 30;
 
   const houseEmoji = isPalace ? '🏯' : isCastle ? '🏰' : isMansion ? '🏛️' : isVilla ? '🏢' : isHouse3 ? '🏡' : isHouse2 ? '🏘️' : isHouse1 ? '🏠' : '🛖';
-  const glowColor = isPalace ? 'rgba(230,185,104,0.55)' : isCastle ? 'rgba(230,185,104,0.4)' : isMansion ? 'rgba(244,237,223,0.3)' : 'rgba(244,237,223,0.15)';
+  const glowColor = isPalace ? 'rgba(226,145,74,0.55)' : isCastle ? 'rgba(226,145,74,0.4)' : isMansion ? 'rgba(242,237,228,0.3)' : 'rgba(242,237,228,0.15)';
   const houseSize = isPalace || isCastle || isMansion || isVilla || isHouse2 || isHouse3 ? 'text-7xl' : isHouse1 ? 'text-6xl' : 'text-5xl';
 
   return (
@@ -56,7 +56,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
             animate={{ opacity: [0.4, 0.7, 0.4] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-64 pointer-events-none"
-            style={{ background: 'linear-gradient(to bottom, rgba(230,185,104,0.35), transparent)', filter: 'blur(24px)' }}
+            style={{ background: 'linear-gradient(to bottom, rgba(226,145,74,0.35), transparent)', filter: 'blur(24px)' }}
           />
         )}
       </AnimatePresence>
@@ -109,7 +109,7 @@ export function SoulVisualization({ routineStreak, prayerStreak, cleanSoulStreak
               animate={{ opacity: [0.3, 0.5, 0.3] }}
               transition={{ duration: 3, repeat: Infinity }}
               className="absolute inset-0 rounded-full -z-10"
-              style={{ background: 'rgba(230,185,104,0.14)', filter: 'blur(20px)' }}
+              style={{ background: 'rgba(226,145,74,0.14)', filter: 'blur(20px)' }}
             />
           )}
         </AnimatePresence>

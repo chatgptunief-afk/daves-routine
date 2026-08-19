@@ -31,7 +31,7 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(244,237,223,0.08)"
+          stroke="rgba(240,236,247,0.07)"
           strokeWidth={strokeWidth}
         />
         <m.circle
@@ -50,7 +50,7 @@ export function ProgressRing({
       </svg>
 
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {label && <span className="tnum text-2xl font-bold text-text leading-none">{label}</span>}
+        {label && <span className="font-display tnum text-2xl font-semibold text-text leading-none">{label}</span>}
         {sublabel && <span className="text-xs text-text-tertiary mt-0.5">{sublabel}</span>}
       </div>
     </div>

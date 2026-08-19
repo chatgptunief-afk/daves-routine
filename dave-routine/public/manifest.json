@@ -4,8 +4,8 @@
   "description": "Persoonlijke planning en herstelroutine app met streak systeem",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#121009",
-  "theme_color": "#121009",
+  "background_color": "#0c0b10",
+  "theme_color": "#0c0b10",
   "orientation": "portrait-primary",
   "icons": [
     {

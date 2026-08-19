@@ -4,9 +4,9 @@ import { useAppState } from '@/hooks/useAppState';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { m, AnimatePresence } from 'framer-motion';
 import { Bell, Coins, Flame } from 'lucide-react';
-import { TaskCard } from '@/components/ui/TaskCard';
 import { RoutineSection } from '@/components/ui/RoutineSection';
-import { DailyCheckin } from '@/components/ui/DailyCheckin';
+import { FrogSpotlight } from '@/components/ui/FrogSpotlight';
+import { OpeningRitual } from '@/components/ui/OpeningRitual';
 
 const DAYS_NL = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
 const MONTHS_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
@@ -21,6 +21,14 @@ function getGreeting() {
 function getDateLabel() {
   const d = new Date();
   return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
+}
+
+function getStatusLine(completed: number, total: number, allDone: boolean) {
+  if (total === 0) return '';
+  if (allDone) return 'Elke taak is voltooid';
+  if (completed === 0) return 'Tijd om te beginnen';
+  const remaining = total - completed;
+  return `Nog ${remaining} taak${remaining === 1 ? '' : 'en'} te gaan`;
 }
 
 export default function TodayPage() {
@@ -45,6 +53,18 @@ export default function TodayPage() {
     return () => clearTimeout(t);
   }, [showCoinToast]);
 
+  const [prevAllDone, setPrevAllDone] = useState(allDone);
+  const [showDayComplete, setShowDayComplete] = useState(false);
+  if (allDone !== prevAllDone) {
+    setPrevAllDone(allDone);
+    if (allDone) setShowDayComplete(true);
+  }
+  useEffect(() => {
+    if (!showDayComplete) return;
+    const t = setTimeout(() => setShowDayComplete(false), 2800);
+    return () => clearTimeout(t);
+  }, [showDayComplete]);
+
   if (!isLoaded || !state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -54,7 +74,7 @@ export default function TodayPage() {
   }
 
   const frogTask = state.frogTaskId
-    ? state.todayTasks.find(t => t.id === state.frogTaskId && !t.completed) ?? null
+    ? state.todayTasks.find(t => t.id === state.frogTaskId) ?? null
     : null;
 
   const requestNotifications = () => {
@@ -73,23 +93,24 @@ export default function TodayPage() {
 
   return (
     <>
-      <DailyCheckin show={needsCheckin} userName={state.userName} onDone={markCheckinDone} />
+      <OpeningRitual show={needsCheckin} userName={state.userName} onDone={markCheckinDone} />
 
-      <div className="space-y-5">
+      <div className="space-y-7">
         {/* Header */}
         <div className="flex justify-between items-start pt-1">
           <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <p className="text-text-tertiary text-sm">{getDateLabel()}</p>
-            <h1 className="text-2xl font-bold text-text mt-0.5">
+            <h1 className="font-display text-[26px] font-semibold text-text mt-0.5 tracking-tight">
               {getGreeting()}, {state.userName}
             </h1>
+            <p className="text-text-secondary text-sm mt-1">{getStatusLine(completedCount, totalCount, allDone)}</p>
           </m.div>
 
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex items-center gap-2 pt-0.5 flex-shrink-0">
             <div className="relative">
               <div className="flex items-center gap-1.5 bg-accent-soft border border-accent/20 rounded-full px-2.5 py-1.5">
                 <Coins size={13} className="text-accent" />
-                <span className="tnum text-accent-strong font-semibold text-sm">{state.soulCoins ?? 0}</span>
+                <span className="tnum text-accent-strong font-semibold text-sm">{coins}</span>
               </div>
               <AnimatePresence>
                 {showCoinToast && (
@@ -117,23 +138,37 @@ export default function TodayPage() {
 
         {/* Frog spotlight */}
         {frogTask && (
-          <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
-            <p className="text-xs font-semibold text-accent-strong mb-1.5 px-1">Prioriteit vandaag</p>
-            <TaskCard task={frogTask} onToggle={toggleTask} isFrog />
-          </m.div>
+          <FrogSpotlight task={frogTask} onToggle={toggleTask} />
         )}
 
         {/* Progress overview */}
         <m.div
+          layout
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-          className={`rounded-card p-5 border flex items-center justify-between gap-4 ${
-            allDone ? 'bg-accent-soft border-accent/25' : 'bg-surface border-border'
-          }`}
+          transition={{ delay: 0.05, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          className="relative overflow-hidden rounded-card p-5 border flex items-center justify-between gap-4"
+          style={{
+            borderColor: allDone ? 'rgba(226,145,74,0.3)' : 'var(--color-border)',
+            background: allDone ? 'linear-gradient(160deg, rgba(226,145,74,0.14), rgba(21,19,25,0.5))' : 'var(--color-surface)',
+          }}
         >
-          <div className="min-w-0">
-            <h2 className="font-bold text-lg text-text mb-1">{allDone ? 'Dag voltooid' : 'Taken vandaag'}</h2>
+          <AnimatePresence>
+            {showDayComplete && (
+              <m.div
+                initial={{ opacity: 0.8, scale: 0.4 }}
+                animate={{ opacity: 0, scale: 2.4 }}
+                transition={{ duration: 1.4, ease: [0.23, 1, 0.32, 1] }}
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'radial-gradient(circle at 70% 30%, rgba(226,145,74,0.45), transparent 60%)' }}
+              />
+            )}
+          </AnimatePresence>
+
+          <div className="relative min-w-0">
+            <h2 className="font-display font-semibold text-lg text-text mb-1">
+              {allDone ? 'Perfecte dag' : 'Taken vandaag'}
+            </h2>
             <p className="tnum text-text-secondary text-sm">{completedCount} van de {totalCount} voltooid</p>
             {state.streaks.ultimate.currentStreak > 0 && (
               <div className="flex items-center gap-1.5 mt-2 text-accent-strong">
@@ -154,64 +189,24 @@ export default function TodayPage() {
             className="border border-border bg-surface rounded-card p-6 text-center"
           >
             <div className="text-3xl mb-3">🌱</div>
-            <h3 className="text-text font-semibold text-base mb-1">Klaar voor een nieuwe start?</h3>
+            <h3 className="font-display text-text font-semibold text-base mb-1">Klaar voor een nieuwe start?</h3>
             <p className="text-text-tertiary text-sm">Je hebt nog geen taken ingesteld. Ga naar Profiel om je routine te bouwen.</p>
           </m.div>
         )}
 
-        {/* Full checklist */}
+        {/* Checklist */}
         {state.taskBlueprint.length > 0 && (
           <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-            className="space-y-2.5"
+            transition={{ delay: 0.1, duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="space-y-6"
           >
-            <RoutineSection
-              title="Gebeden"
-              emoji="🕌"
-              tasks={prayerTasks}
-              onToggle={toggleTask}
-              accentColor="var(--color-prayer)"
-              defaultOpen
-              frogTaskId={state.frogTaskId}
-            />
-            <RoutineSection
-              title="Ochtendroutine"
-              emoji="🌅"
-              tasks={morningTasks}
-              onToggle={toggleTask}
-              accentColor="var(--color-accent)"
-              defaultOpen
-              frogTaskId={state.frogTaskId}
-            />
-            <RoutineSection
-              title="Dagelijkse taken"
-              emoji="📅"
-              tasks={dailyTasks}
-              onToggle={toggleTask}
-              accentColor="var(--color-accent)"
-              defaultOpen
-              frogTaskId={state.frogTaskId}
-            />
-            <RoutineSection
-              title="Avondroutine"
-              emoji="🌙"
-              tasks={eveningTasks}
-              onToggle={toggleTask}
-              accentColor="var(--color-accent)"
-              defaultOpen={false}
-              frogTaskId={state.frogTaskId}
-            />
-            <RoutineSection
-              title="Clean Soul"
-              emoji="🛡️"
-              tasks={cleanSoulTasks}
-              onToggle={toggleTask}
-              accentColor="var(--color-cleansoul)"
-              defaultOpen
-              frogTaskId={state.frogTaskId}
-            />
+            <RoutineSection title="Gebeden" emoji="🕌" tasks={prayerTasks} onToggle={toggleTask} accentColor="var(--color-prayer)" defaultOpen />
+            <RoutineSection title="Ochtendroutine" emoji="🌅" tasks={morningTasks} onToggle={toggleTask} accentColor="var(--color-accent)" defaultOpen />
+            <RoutineSection title="Dagelijkse taken" emoji="📅" tasks={dailyTasks} onToggle={toggleTask} accentColor="var(--color-accent)" defaultOpen />
+            <RoutineSection title="Avondroutine" emoji="🌙" tasks={eveningTasks} onToggle={toggleTask} accentColor="var(--color-accent)" defaultOpen={false} />
+            <RoutineSection title="Clean Soul" emoji="🛡️" tasks={cleanSoulTasks} onToggle={toggleTask} accentColor="var(--color-cleansoul)" defaultOpen />
           </m.div>
         )}
 

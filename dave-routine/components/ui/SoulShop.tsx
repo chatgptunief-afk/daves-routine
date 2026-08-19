@@ -12,7 +12,7 @@ export function SoulShop({ soulCoins, freezes, onBuyFreeze }: SoulShopProps) {
 
   return (
     <div className="bg-surface border border-border rounded-card p-5 space-y-4">
-      <h2 className="text-text font-semibold text-[15px]">Soul Shop</h2>
+      <h2 className="font-display text-text font-semibold text-[15px]">Soul Shop</h2>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-surface-2 border border-border rounded-control p-3 flex items-center gap-2.5">

@@ -12,10 +12,9 @@ interface RoutineSectionProps {
   onToggle: (id: string) => void;
   accentColor: string; // CSS color value
   defaultOpen?: boolean;
-  frogTaskId?: string | null;
 }
 
-export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, defaultOpen = true, frogTaskId }: RoutineSectionProps) {
+export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, defaultOpen = true }: RoutineSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const completed = tasks.filter(t => t.completed).length;
   const total = tasks.length;
@@ -32,61 +31,55 @@ export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, def
   if (total === 0) return null;
 
   return (
-    <div className={`rounded-card border transition-colors duration-500 overflow-hidden ${
-      isDone
-        ? 'border-border bg-surface/40'
-        : 'border-border bg-surface'
-    }`}>
+    <div>
       <button
         onClick={() => setIsOpen(o => !o)}
-        className="tap w-full flex items-center gap-3 p-4 text-left"
+        className="tap w-full flex items-center gap-3 py-1 text-left"
       >
-        <span className={`text-xl flex-shrink-0 ${isDone ? 'opacity-50' : ''}`}>{emoji}</span>
+        <span className={`text-lg flex-shrink-0 ${isDone ? 'opacity-45' : ''}`}>{emoji}</span>
         <div className="flex-1 min-w-0">
-          <h2 className={`font-semibold text-[15px] ${isDone ? 'text-text-secondary' : 'text-text'}`}>{title}</h2>
-          <div className="h-4 mt-0.5 relative flex flex-col justify-center">
-            <AnimatePresence mode="wait">
-              {isDone ? (
-                <m.div
-                  key="done"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex items-center gap-1.5 text-accent font-medium text-[11px]"
-                >
-                  <CheckCircle2 size={12} /> Voltooid
-                </m.div>
-              ) : (
-                <m.div
-                  key="progress"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex items-center gap-2"
-                >
-                  <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden">
-                    <m.div
-                      className="h-full rounded-full"
-                      style={{ background: accentColor }}
-                      initial={false}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                    />
-                  </div>
-                  <span className="tnum text-[11px] text-text-tertiary flex-shrink-0">{completed}/{total}</span>
-                </m.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <h2 className={`font-display font-semibold text-[15px] ${isDone ? 'text-text-secondary' : 'text-text'}`}>{title}</h2>
         </div>
-        <m.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-        >
-          <ChevronDown size={18} className="text-text-tertiary" />
-        </m.div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            {isDone ? (
+              <m.div
+                key="done"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-1 text-accent text-[11px] font-medium"
+              >
+                <CheckCircle2 size={12} /> Klaar
+              </m.div>
+            ) : (
+              <m.div
+                key="progress"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-2 w-20"
+              >
+                <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden">
+                  <m.div
+                    className="h-full rounded-full"
+                    style={{ background: accentColor }}
+                    initial={false}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                  />
+                </div>
+                <span className="tnum text-[11px] text-text-tertiary flex-shrink-0">{completed}/{total}</span>
+              </m.div>
+            )}
+          </AnimatePresence>
+          <m.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}>
+            <ChevronDown size={16} className="text-text-tertiary" />
+          </m.div>
+        </div>
       </button>
 
       <AnimatePresence initial={false}>
@@ -98,9 +91,9 @@ export function RoutineSection({ title, emoji, tasks, onToggle, accentColor, def
             transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
             className="overflow-hidden"
           >
-            <div className="px-3 pb-3 flex flex-col gap-1.5">
+            <div className="pt-1">
               {tasks.map(task => (
-                <TaskCard key={task.id} task={task} onToggle={onToggle} isFrog={frogTaskId === task.id} />
+                <TaskCard key={task.id} task={task} onToggle={onToggle} />
               ))}
             </div>
           </m.div>

@@ -1,41 +1,46 @@
 @import "tailwindcss";
 
+/*
+  "First Light" — the app is about the discipline that happens at dawn
+  (Fajr, waking without snooze, the cold shower) and the warmth earned
+  for it. Cool pre-dawn near-black base. One warm ember accent for
+  ignition/action. Dusk-indigo for prayer (the sky, not the sun).
+  Sage for growth/purity. Three hues, one story — not a decorative palette.
+*/
 @theme {
-  /* Surfaces — warm charcoal, not blue-black */
-  --color-bg: #121009;
-  --color-surface: #1c1811;
-  --color-surface-2: #241f16;
-  --color-border: rgba(244, 237, 223, 0.08);
-  --color-border-strong: rgba(244, 237, 223, 0.16);
+  --color-bg: #0c0b10;
+  --color-surface: #151319;
+  --color-surface-2: #1c1a22;
+  --color-border: rgba(240, 236, 247, 0.07);
+  --color-border-strong: rgba(240, 236, 247, 0.14);
 
-  /* Text — warm off-white, never pure white */
-  --color-text: #f3ecdd;
-  --color-text-secondary: rgba(243, 236, 221, 0.62);
-  --color-text-tertiary: rgba(243, 236, 221, 0.52);
+  --color-text: #f2ede4;
+  --color-text-secondary: rgba(242, 237, 228, 0.66);
+  --color-text-tertiary: rgba(242, 237, 228, 0.54);
 
-  /* Accent — single warm gold, used for primary actions & current state */
-  --color-accent: #cf9a44;
-  --color-accent-strong: #e6b968;
-  --color-accent-soft: rgba(207, 154, 68, 0.14);
-  --color-accent-ink: #201404;
+  /* Ember — ignition, action, the sun breaking the horizon */
+  --color-accent: #e2914a;
+  --color-accent-strong: #f0ab6b;
+  --color-accent-soft: rgba(226, 145, 74, 0.14);
+  --color-accent-ink: #2b1607;
 
-  /* Domain identity colors — muted, earthy family, used only as small identifiers */
-  --color-prayer: #c17a4f;
-  --color-prayer-soft: rgba(193, 122, 79, 0.14);
-  --color-cleansoul: #7f9e73;
-  --color-cleansoul-soft: rgba(127, 158, 115, 0.14);
+  /* Dusk indigo — prayer, the sky before and after light */
+  --color-prayer: #8d89c8;
+  --color-prayer-soft: rgba(141, 137, 200, 0.14);
 
-  /* Semantic */
-  --color-success: #6fae74;
-  --color-danger: #cf6a5a;
-  --color-danger-soft: rgba(207, 106, 90, 0.14);
+  /* Sage — Clean Soul, growth, what's tended */
+  --color-cleansoul: #7fa47a;
+  --color-cleansoul-soft: rgba(127, 164, 122, 0.14);
 
-  /* One radius scale for the whole app */
+  --color-danger: #c96a5c;
+  --color-danger-soft: rgba(201, 106, 92, 0.14);
+
   --radius-control: 0.75rem;
   --radius-card: 1.25rem;
   --radius-sheet: 1.75rem;
 
   --font-sans: var(--font-inter), sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
 }
 
 :root {
@@ -60,6 +65,10 @@ body {
   font-feature-settings: 'tnum' 1, 'cv11' 1;
 }
 
+.font-display {
+  font-family: var(--font-display);
+}
+
 /* Safe area for iOS */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -73,7 +82,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(244, 237, 223, 0.1);
+  background: rgba(240, 236, 247, 0.1);
   border-radius: 9999px;
 }
 
@@ -88,6 +97,12 @@ body {
 }
 .tap:active {
   transform: scale(0.97);
+}
+
+/* Hairline divider, used instead of wrapping every group in a card */
+.divider {
+  height: 1px;
+  background: var(--color-border);
 }
 
 @media (prefers-reduced-motion: reduce) {

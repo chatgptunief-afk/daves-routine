@@ -17,7 +17,7 @@ const CATEGORY_META: { key: string; label: string; icon: string }[] = [
 export function CategoryXPBars({ categoryXP }: CategoryXPBarsProps) {
   return (
     <div className="bg-surface border border-border rounded-card p-5 space-y-4">
-      <h2 className="text-text font-semibold text-[15px]">Categorie levels</h2>
+      <h2 className="font-display text-text font-semibold text-[15px]">Categorie levels</h2>
 
       <div className="space-y-3">
         {CATEGORY_META.map(({ key, label, icon }) => {

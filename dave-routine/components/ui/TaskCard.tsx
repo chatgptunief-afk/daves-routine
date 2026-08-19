@@ -7,7 +7,6 @@ import { useState, useCallback } from 'react';
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => void;
-  isFrog?: boolean;
 }
 
 function CompletionBurst() {
@@ -16,8 +15,8 @@ function CompletionBurst() {
     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-card">
       {particles.map((_, i) => {
         const angle = (i / particles.length) * 360;
-        const x = Math.cos((angle * Math.PI) / 180) * 34;
-        const y = Math.sin((angle * Math.PI) / 180) * 34;
+        const x = Math.cos((angle * Math.PI) / 180) * 32;
+        const y = Math.sin((angle * Math.PI) / 180) * 32;
         return (
           <m.div
             key={i}
@@ -33,7 +32,7 @@ function CompletionBurst() {
   );
 }
 
-export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
+export function TaskCard({ task, onToggle }: TaskCardProps) {
   const [showBurst, setShowBurst] = useState(false);
 
   const handleToggle = useCallback(() => {
@@ -41,9 +40,7 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
       setShowBurst(true);
       setTimeout(() => setShowBurst(false), 550);
       try {
-        if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-          navigator.vibrate(12);
-        }
+        if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(12);
       } catch {}
     }
     onToggle(task.id);
@@ -55,19 +52,9 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-      className={`tap relative flex items-center gap-3.5 p-4 rounded-card border cursor-pointer select-none
-        ${task.completed
-          ? 'bg-accent-soft border-accent/25'
-          : 'bg-surface border-border active:border-border-strong'
-        }`}
+      className={`tap relative flex items-center gap-3.5 py-3.5 cursor-pointer select-none border-b border-border last:border-b-0`}
       onClick={handleToggle}
     >
-      {isFrog && !task.completed && (
-        <span className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[10px] shadow-md shadow-black/30 z-10">
-          🐸
-        </span>
-      )}
-
       <AnimatePresence>
         {showBurst && <CompletionBurst />}
       </AnimatePresence>
@@ -96,12 +83,6 @@ export function TaskCard({ task, onToggle, isFrog = false }: TaskCardProps) {
           <p className="text-xs text-text-tertiary mt-0.5 truncate">{task.description}</p>
         )}
       </div>
-
-      {isFrog && !task.completed && (
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-accent-strong bg-accent-soft px-1.5 py-0.5 rounded-full flex-shrink-0">
-          Prio
-        </span>
-      )}
     </m.div>
   );
 }
