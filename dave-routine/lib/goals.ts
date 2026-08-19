@@ -1,5 +1,13 @@
-import { Goal, LogEntry } from '@/types';
+import { Goal, LogEntry, DomainColor } from '@/types';
 import { parseDateString, todayString, addDays } from './date';
+
+// Eén plek die DomainColor naar een CSS-waarde vertaalt — Doelen, Doel-detail en GoalChip
+// deelden voorheen elk hun eigen kopie hiervan.
+export const GOAL_COLOR_CSS: Record<DomainColor, string> = {
+  ember: 'var(--color-ember-500)',
+  dusk: 'var(--color-dusk-500)',
+  grove: 'var(--color-grove-500)',
+};
 
 export type PaceStatus = 'voor' | 'op schema' | 'achter';
 

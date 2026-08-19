@@ -16,8 +16,8 @@ export function Herstel({ missedDays, onContinue }: HerstelProps) {
     <m.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.32, ease: [0.23, 1, 0.32, 1] }}
-      className="rounded-card bg-ink-700 border border-line p-6 mb-6 text-center space-y-4"
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="rounded-card bg-ink-700 p-6 mb-6 text-center space-y-4"
     >
       <div className="w-11 h-11 mx-auto rounded-full bg-dusk-soft flex items-center justify-center">
         <Wind size={20} strokeWidth={1.75} className="text-dusk-400" />

@@ -50,10 +50,10 @@ export function Sheet({ open, onClose, children, title }: SheetProps) {
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.4 }}
             onDragEnd={handleDragEnd}
-            className="fixed bottom-0 left-0 right-0 z-[95] max-h-[88vh] mx-auto max-w-[430px] bg-ink-700 rounded-t-sheet overflow-hidden flex flex-col"
+            className="surface-lift fixed bottom-0 left-0 right-0 z-[95] max-h-[88vh] mx-auto max-w-[430px] bg-ink-700 rounded-t-sheet overflow-hidden flex flex-col border-t border-line"
           >
-            <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
-              <div className="w-9 h-1 rounded-full bg-paper-44" />
+            <div className="flex-shrink-0 flex justify-center pt-3 pb-2">
+              <div className="w-8 h-[3px] rounded-full bg-paper-44/50" />
             </div>
             <div className="overflow-y-auto px-5 pb-[calc(24px+env(safe-area-inset-bottom))] pt-2">
               {children}

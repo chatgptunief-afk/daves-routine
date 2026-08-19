@@ -3,13 +3,15 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { useApp } from '@/components/AppStateProvider';
 import { getIcon } from '@/lib/icons';
+import { Check } from '@/components/ui/Check';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 export default function AnkersPage() {
   const router = useRouter();
   const { state, isLoaded, setAnkerIds } = useApp();
 
   if (!isLoaded || !state) {
-    return <div className="pt-16 text-center"><p className="text-paper-56 text-[14px]">Laden...</p></div>;
+    return <LoadingState />;
   }
 
   const ritmeTasks = state.taskBlueprint.filter(t => t.domain === 'ritme' && !t.archivedAt).sort((a, b) => a.order - b.order);
@@ -32,15 +34,15 @@ export default function AnkersPage() {
 
       <p className="eyebrow mb-1">Ankers</p>
       <p className="font-display text-[24px] text-paper mb-2">Max 5. Niet-onderhandelbaar.</p>
-      <p className="text-[14px] text-paper-56 mb-6 leading-relaxed">
+      <p className="text-[14px] text-paper-56 mb-6 leading-relaxed max-w-[300px]">
         Ankers zijn de taken die je reeks maken of breken. Kies de taken waar alles op staat —
         de rest is Ritme, en Ritme is nooit fataal.
       </p>
 
       <p className="tnum text-[13px] text-paper-56 mb-3">{selected.length} / 5 gekozen</p>
 
-      <div className="rounded-card bg-ink-700 border border-line overflow-hidden">
-        {ritmeTasks.map((task, i) => {
+      <div className="rounded-card bg-ink-700 divide-y divide-line overflow-hidden">
+        {ritmeTasks.map(task => {
           const Icon = getIcon(task.icon);
           const isSelected = selected.includes(task.id);
           const disabled = !isSelected && selected.length >= 5;
@@ -49,23 +51,11 @@ export default function AnkersPage() {
               key={task.id}
               onClick={() => toggle(task.id)}
               disabled={disabled}
-              className={`tap w-full flex items-center gap-3 px-5 py-3.5 text-left disabled:opacity-30 ${i !== ritmeTasks.length - 1 ? 'border-b border-line' : ''}`}
+              className="tap w-full flex items-center gap-3 px-5 py-3.5 text-left disabled:opacity-30"
             >
-              <Icon size={17} strokeWidth={1.75} className={isSelected ? 'text-ember-400' : 'text-paper-56'} />
+              <Icon size={16} strokeWidth={1.5} className={isSelected ? 'text-ember-400' : 'text-paper-44'} />
               <span className={`flex-1 text-[15px] ${isSelected ? 'text-paper font-medium' : 'text-paper-72'}`}>{task.title}</span>
-              <span
-                className="w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0"
-                style={{
-                  borderColor: isSelected ? 'transparent' : 'rgba(245,241,232,0.44)',
-                  background: isSelected ? 'var(--color-ember-500)' : 'transparent',
-                }}
-              >
-                {isSelected && (
-                  <svg viewBox="0 0 24 24" className="w-3 h-3 text-ember-ink" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                )}
-              </span>
+              <Check checked={isSelected} size={21} />
             </button>
           );
         })}

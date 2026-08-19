@@ -34,7 +34,7 @@ export function PhaseGroup({ title, tasks, ankerIds, onToggle, isCurrentPhase }:
       >
         <span className={`eyebrow flex-1 ${allDone ? 'opacity-50' : ''}`}>{title}</span>
         <span className="tnum text-[12px] text-paper-56">{completed}/{total}</span>
-        <m.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}>
+        <m.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}>
           <ChevronDown size={14} className="text-paper-56" />
         </m.span>
       </button>
@@ -45,7 +45,7 @@ export function PhaseGroup({ title, tasks, ankerIds, onToggle, isCurrentPhase }:
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
             <div className="pt-1">

@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useApp } from '@/components/AppStateProvider';
 import { Input } from '@/components/ui/Input';
 import { DEFAULT_MANUAL_TIMES } from '@/lib/prayerTimes';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { PrayerTimes } from '@/types';
 
 export default function InstellingenPage() {
@@ -13,7 +14,7 @@ export default function InstellingenPage() {
   const [locError, setLocError] = useState<string | null>(null);
 
   if (!isLoaded || !state) {
-    return <div className="pt-16 text-center"><p className="text-paper-56 text-[14px]">Laden...</p></div>;
+    return <LoadingState />;
   }
 
   const manual = state.settings.manualPrayerTimes ?? DEFAULT_MANUAL_TIMES;
@@ -56,7 +57,7 @@ export default function InstellingenPage() {
       </div>
 
       <p className="eyebrow mb-3">Gebedstijden</p>
-      <div className="rounded-card bg-ink-700 border border-line p-5 mb-8 space-y-4">
+      <div className="rounded-card bg-ink-700 p-5 mb-8 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[15px] text-paper font-medium">Berekend op locatie</p>
@@ -82,7 +83,7 @@ export default function InstellingenPage() {
       </div>
 
       <p className="eyebrow mb-3">Voorkeuren</p>
-      <div className="rounded-card bg-ink-700 border border-line divide-y divide-line mb-8">
+      <div className="rounded-card bg-ink-700 divide-y divide-line mb-8">
         <SettingRow label="Meldingen" checked={state.settings.notificationsEnabled} onChange={toggleNotifications} />
         <SettingRow
           label="Verminderde beweging"

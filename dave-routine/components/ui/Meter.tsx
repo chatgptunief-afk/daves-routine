@@ -19,7 +19,7 @@ export function Meter({ percentage, paceMarkerPercentage, color = 'var(--color-e
           style={{ background: color }}
           initial={false}
           animate={{ width: `${filled}%` }}
-          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
       {overflow > 0 && (
@@ -29,7 +29,7 @@ export function Meter({ percentage, paceMarkerPercentage, color = 'var(--color-e
             style={{ background: color }}
             initial={false}
             animate={{ width: `${overflow}%` }}
-            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           />
         </div>
       )}

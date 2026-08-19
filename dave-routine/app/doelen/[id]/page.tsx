@@ -6,12 +6,9 @@ import { useApp } from '@/components/AppStateProvider';
 import { Meter } from '@/components/ui/Meter';
 import { LogSheet } from '@/components/ui/LogSheet';
 import { Button } from '@/components/ui/Button';
-import { computeGoalProgress, historicalPeriods } from '@/lib/goals';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { computeGoalProgress, historicalPeriods, GOAL_COLOR_CSS } from '@/lib/goals';
 import { dateLabel } from '@/lib/date';
-
-const COLOR_CSS: Record<string, string> = {
-  ember: 'var(--color-ember-500)', dusk: 'var(--color-dusk-500)', grove: 'var(--color-grove-500)',
-};
 
 export default function GoalDetailPage() {
   const params = useParams<{ id: string }>();
@@ -20,7 +17,7 @@ export default function GoalDetailPage() {
   const [logOpen, setLogOpen] = useState(false);
 
   if (!isLoaded || !state) {
-    return <div className="pt-16 text-center"><p className="text-paper-56 text-[14px]">Laden...</p></div>;
+    return <LoadingState />;
   }
 
   const goal = state.goals.find(g => g.id === params.id);
@@ -34,7 +31,7 @@ export default function GoalDetailPage() {
   }
 
   const progress = computeGoalProgress(goal, state.logEntries);
-  const colorCss = COLOR_CSS[goal.color] ?? COLOR_CSS.ember;
+  const colorCss = GOAL_COLOR_CSS[goal.color] ?? GOAL_COLOR_CSS.ember;
   const history = goal.period !== 'doorlopend' ? historicalPeriods(goal, state.logEntries, 6) : [];
   const recentEntries = state.logEntries
     .filter(e => e.goalId === goal.id)
@@ -57,7 +54,7 @@ export default function GoalDetailPage() {
 
       <div className="rounded-card bg-ink-700 border border-line p-5 mb-6">
         <div className="flex items-baseline justify-between mb-3">
-          <p className="tnum font-display text-[32px] text-paper leading-none">{progress.actual}</p>
+          <p className="numeral-hero text-paper text-[36px]">{progress.actual}</p>
           <p className="text-[14px] text-paper-56">van {goal.target} {goal.unit}</p>
         </div>
         <Meter percentage={progress.percentage} paceMarkerPercentage={goal.period === 'doorlopend' ? null : Math.min(100, (progress.expected / goal.target) * 100)} color={colorCss} />

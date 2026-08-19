@@ -15,6 +15,7 @@ import { Herstel } from '@/components/ui/Herstel';
 import { Breathing } from '@/components/ui/Breathing';
 import { MomentOverlay, type MomentContent } from '@/components/ui/MomentOverlay';
 import { Toast } from '@/components/ui/Toast';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { getCurrentPhase, momentLine } from '@/lib/phase';
 import { dateLabel, addDays, weekday, timeStringToDate } from '@/lib/date';
 import { tasksForWeekday } from '@/lib/tasks';
@@ -50,11 +51,7 @@ export default function VandaagPage() {
   }, [app.allAnkersDone, app.streak.current]);
 
   if (!isLoaded || !state || !now || !state.prayerTimesCache) {
-    return (
-      <div className="pt-16 text-center">
-        <p className="text-paper-56 text-[14px]">Laden...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   const times = state.prayerTimesCache;
@@ -91,27 +88,25 @@ export default function VandaagPage() {
 
   return (
     <div className="pb-8">
-      <div className="flex items-start justify-between mb-1">
-        <div>
-          <p className="eyebrow mb-1">{dateLabel(times.date)}</p>
-          <p className="text-[15px] text-paper-72">{momentLine(now, times)}</p>
-        </div>
-        <button onClick={() => setBreathingOpen(true)} className="tap w-9 h-9 rounded-full flex items-center justify-center text-paper-56" aria-label="Adem">
-          <Wind size={18} strokeWidth={1.75} />
+      <div className="flex items-center justify-between mb-5">
+        <p className="eyebrow">{dateLabel(times.date)}</p>
+        <button onClick={() => setBreathingOpen(true)} className="tap w-8 h-8 -mr-1.5 rounded-full flex items-center justify-center text-paper-44" aria-label="Adem">
+          <Wind size={16} strokeWidth={1.75} />
         </button>
       </div>
 
-      <div className="my-6">
-        <Arc now={now} times={times} completionRatio={completionRatio} prayersCompleted={prayersCompleted} />
-      </div>
+      <Arc now={now} times={times} completionRatio={completionRatio} prayersCompleted={prayersCompleted} />
+      <p className="text-center text-[14px] text-paper-56 -mt-1 mb-7">{momentLine(now, times)}</p>
 
       {app.missedDaysInARow >= 2 && state.lastCheckinDate !== times.date && (
         <Herstel missedDays={app.missedDaysInARow} onContinue={markCheckinDone} />
       )}
 
-      <div className="space-y-7">
+      <div className="pb-6 mb-6 border-b border-line">
         <EersteSteenField task={app.firstStoneTask} onToggle={toggleTask} dayIsOver={dayIsOver} />
+      </div>
 
+      <div className="space-y-6">
         <GebedGroup tasks={app.gebedTasks} times={times} now={now} onToggle={toggleTask} />
 
         <ZuiverheidField task={purityTask} streakDays={displayedPurityStreak} onToggle={toggleTask} />
@@ -131,9 +126,9 @@ export default function VandaagPage() {
 
       <button
         onClick={() => setDagafsluitingOpen(true)}
-        className="tap w-full flex items-center justify-center gap-2 mt-8 h-11 rounded-control text-paper-56 text-[14px] border border-line"
+        className="tap w-full flex items-center justify-center gap-2 mt-10 pt-6 border-t border-line h-11 text-paper-56 text-[13.5px]"
       >
-        <Moon size={15} strokeWidth={1.75} />
+        <Moon size={14} strokeWidth={1.75} />
         Dag afsluiten
       </button>
 

@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Meter } from '@/components/ui/Meter';
-import { computeGoalProgress } from '@/lib/goals';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { computeGoalProgress, GOAL_COLOR_CSS } from '@/lib/goals';
 import { todayString } from '@/lib/date';
 import { DomainColor, GoalPeriod } from '@/types';
 
@@ -20,10 +21,10 @@ const PERIODS: { value: GoalPeriod; label: string }[] = [
   { value: 'doorlopend', label: 'Doorlopend' },
 ];
 
-const COLORS: { value: DomainColor; label: string; css: string }[] = [
-  { value: 'ember', label: 'Ember', css: 'var(--color-ember-500)' },
-  { value: 'dusk', label: 'Dusk', css: 'var(--color-dusk-500)' },
-  { value: 'grove', label: 'Grove', css: 'var(--color-grove-500)' },
+const COLORS: { value: DomainColor; label: string }[] = [
+  { value: 'ember', label: 'Ember' },
+  { value: 'dusk', label: 'Dusk' },
+  { value: 'grove', label: 'Grove' },
 ];
 
 export default function DoelenPage() {
@@ -36,7 +37,7 @@ export default function DoelenPage() {
   const [color, setColor] = useState<DomainColor>('ember');
 
   if (!isLoaded || !state) {
-    return <div className="pt-16 text-center"><p className="text-paper-56 text-[14px]">Laden...</p></div>;
+    return <LoadingState />;
   }
 
   const activeGoals = state.goals.filter(g => !g.archivedAt);
@@ -69,24 +70,20 @@ export default function DoelenPage() {
         />
       )}
 
-      <div className="space-y-4">
+      <div className="rounded-card bg-ink-700 divide-y divide-line overflow-hidden">
         {activeGoals.map(goal => {
           const progress = computeGoalProgress(goal, state.logEntries);
-          const colorCss = COLORS.find(c => c.value === goal.color)?.css ?? 'var(--color-ember-500)';
+          const colorCss = GOAL_COLOR_CSS[goal.color] ?? GOAL_COLOR_CSS.ember;
           return (
-            <Link
-              key={goal.id}
-              href={`/doelen/${goal.id}`}
-              className="tap block rounded-card bg-ink-700 border border-line p-5"
-            >
-              <div className="flex items-baseline justify-between mb-2">
+            <Link key={goal.id} href={`/doelen/${goal.id}`} className="tap block p-5">
+              <div className="flex items-baseline justify-between mb-2.5">
                 <p className="font-medium text-[16px] text-paper">{goal.title}</p>
                 <p className="tnum text-[14px] text-paper-56">
                   {progress.actual} / {goal.target} {goal.unit}
                 </p>
               </div>
               <Meter percentage={progress.percentage} paceMarkerPercentage={goal.period === 'doorlopend' ? null : Math.min(100, (progress.expected / goal.target) * 100)} color={colorCss} />
-              <p className="text-[12px] text-paper-56 mt-2">
+              <p className="text-[12px] text-paper-56 mt-2.5">
                 {progress.status === 'voor' ? 'Voor op schema' : progress.status === 'achter' ? 'Achter op schema' : 'Op schema'}
               </p>
             </Link>
@@ -119,7 +116,7 @@ export default function DoelenPage() {
                   key={c.value}
                   onClick={() => setColor(c.value)}
                   className="tap w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: c.css, outline: color === c.value ? '2px solid var(--color-paper)' : 'none', outlineOffset: 2 }}
+                  style={{ background: GOAL_COLOR_CSS[c.value], outline: color === c.value ? '2px solid var(--color-paper)' : 'none', outlineOffset: 2 }}
                   aria-label={c.label}
                 />
               ))}

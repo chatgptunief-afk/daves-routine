@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '@/components/AppStateProvider';
 import { Stone } from '@/components/ui/Stone';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { Sheet } from '@/components/ui/Sheet';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DayRecord } from '@/types';
@@ -19,6 +20,14 @@ function monthKey(date: string): string {
 function monthLabel(key: string): string {
   const [y, m] = key.split('-').map(Number);
   return `${MONTH_LABELS_NL[m - 1]} ${y}`;
+}
+
+const COURSE_LENGTH = 7;
+
+function toCourses(records: DayRecord[]): DayRecord[][] {
+  const rows: DayRecord[][] = [];
+  for (let i = 0; i < records.length; i += COURSE_LENGTH) rows.push(records.slice(i, i + COURSE_LENGTH));
+  return rows;
 }
 
 export default function MuurPage() {
@@ -42,32 +51,46 @@ export default function MuurPage() {
   }, [state]);
 
   if (!isLoaded || !state) {
-    return <div className="pt-16 text-center"><p className="text-paper-56 text-[14px]">Laden...</p></div>;
+    return <LoadingState />;
   }
 
   return (
     <div className="pb-8">
       <p className="eyebrow mb-1">De Muur</p>
-      <p className="font-display text-[24px] text-paper mb-6">Elke dag telt mee.</p>
+      <p className="font-display text-[24px] text-paper mb-7">Elke dag telt mee.</p>
 
-      <div className="grid grid-cols-4 gap-3 mb-8">
-        <StatBlock label="Reeks" value={String(streak.current)} />
-        <StatBlock label="Langste" value={String(streak.longest)} />
-        <StatBlock label="Ritme 30d" value={`${streak.ritme30}%`} />
-        <StatBlock label="Zuiverheid" value={String(purityStreak)} />
+      <div className="flex items-end justify-between mb-8 pb-6 border-b border-line">
+        <div>
+          <p className="numeral-hero text-paper text-[52px]">{streak.current}</p>
+          <p className="text-[13px] text-paper-56 mt-0.5">
+            {streak.current === 1 ? 'dag op rij' : 'dagen op rij'}
+          </p>
+        </div>
+        <div className="flex gap-5 pb-1.5">
+          <MiniStat label="Langste" value={String(streak.longest)} />
+          <MiniStat label="Ritme" value={`${streak.ritme30}%`} />
+          <MiniStat label="Zuiver" value={String(purityStreak)} />
+        </div>
       </div>
 
       {groups.length === 0 && (
         <EmptyState line="De muur is nog leeg." explanation="Elke dag die je afsluit, legt een steen." />
       )}
 
-      <div className="space-y-7">
+      <div className="space-y-8">
         {groups.map(group => (
           <div key={group.key}>
             <p className="eyebrow mb-2.5">{group.label}</p>
-            <div className="grid grid-cols-7 gap-1.5">
-              {group.records.map(record => (
-                <Stone key={record.date} record={record} onTap={setSelected} />
+            <div className="space-y-1.5">
+              {toCourses(group.records).map((course, rowIndex) => (
+                <div key={rowIndex} className="grid gap-1.5" style={{ gridTemplateColumns: 'repeat(15, 1fr)' }}>
+                  {rowIndex % 2 === 1 && <div aria-hidden="true" />}
+                  {course.map(record => (
+                    <div key={record.date} style={{ gridColumn: 'span 2 / span 2' }}>
+                      <Stone record={record} onTap={setSelected} />
+                    </div>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -96,11 +119,11 @@ export default function MuurPage() {
   );
 }
 
-function StatBlock({ label, value }: { label: string; value: string }) {
+function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="text-center">
-      <p className="tnum font-display text-[22px] text-paper leading-none mb-1">{value}</p>
-      <p className="text-[10px] text-paper-56 uppercase tracking-wide">{label}</p>
+    <div className="text-right">
+      <p className="tnum text-[17px] text-paper font-medium leading-none mb-1">{value}</p>
+      <p className="text-[10px] text-paper-44 uppercase tracking-wide">{label}</p>
     </div>
   );
 }

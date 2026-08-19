@@ -7,6 +7,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { getIcon, ICON_PICKER_LIST } from '@/lib/icons';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { Phase, Task } from '@/types';
 
 const DAY_LABELS = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
@@ -28,7 +29,7 @@ export default function RoutinePage() {
   const [form, setForm] = useState(emptyForm());
 
   if (!isLoaded || !state) {
-    return <div className="pt-16 text-center"><p className="text-paper-56 text-[14px]">Laden...</p></div>;
+    return <LoadingState />;
   }
 
   const ritmeTasks = state.taskBlueprint.filter(t => t.domain === 'ritme' && !t.archivedAt).sort((a, b) => a.order - b.order);
@@ -90,22 +91,22 @@ export default function RoutinePage() {
         return (
           <div key={phase.value} className="mb-7">
             <p className="eyebrow mb-2.5">{phase.label}</p>
-            <div className="rounded-card bg-ink-700 border border-line overflow-hidden">
-              {tasks.map((task, i) => {
+            <div className="rounded-card bg-ink-700 divide-y divide-line overflow-hidden">
+              {tasks.map(task => {
                 const Icon = getIcon(task.icon);
                 const isAnker = state.ankerIds.includes(task.id);
                 return (
                   <button
                     key={task.id}
                     onClick={() => openEdit(task)}
-                    className={`tap w-full flex items-center gap-3 px-5 py-3.5 text-left ${i !== tasks.length - 1 ? 'border-b border-line' : ''}`}
+                    className="tap w-full flex items-center gap-3 px-5 py-3.5 text-left"
                   >
-                    <Icon size={17} strokeWidth={1.75} className="text-paper-56" />
+                    <Icon size={16} strokeWidth={1.5} className="text-paper-44" />
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] text-paper font-medium truncate">{task.title}</p>
                       {task.cue && <p className="text-[12px] text-paper-56 truncate">{task.cue}</p>}
                     </div>
-                    {isAnker && <span className="eyebrow text-ember-500 flex-shrink-0">Anker</span>}
+                    {isAnker && <span className="w-[3px] h-[3px] rounded-full bg-ember-500 flex-shrink-0" aria-hidden="true" />}
                   </button>
                 );
               })}
