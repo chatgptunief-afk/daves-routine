@@ -8,6 +8,7 @@ import { PageTransition } from '@/components/PageTransition';
 import { AppStateProvider } from '@/components/AppStateProvider';
 import { NotificationScheduler } from '@/components/NotificationScheduler';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
+import { LaunchIntro } from '@/components/LaunchIntro';
 
 import ClientMotionProvider from '@/components/ClientMotionProvider';
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="nl" className="dark">
       <body className={`${inter.variable} ${newsreader.variable} font-sans bg-ink-850 text-paper min-h-screen antialiased`}>
         <ClientMotionProvider>
+          <LaunchIntro />
           <AppStateProvider>
             <Atmosphere />
             <main className="relative z-10 max-w-[430px] mx-auto px-5 pt-safe pb-28 min-h-screen">

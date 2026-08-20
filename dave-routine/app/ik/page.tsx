@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ChevronRight, ListChecks, Anchor, Settings } from 'lucide-react';
+import { ChevronRight, ListChecks, Anchor, Settings, Leaf } from 'lucide-react';
 import { useApp } from '@/components/AppStateProvider';
 import { LoadingState } from '@/components/ui/LoadingState';
 
@@ -30,13 +30,14 @@ export default function IkPage() {
         <div className="flex gap-5 pb-1">
           <MiniStat label="Langste" value={String(streak.longest)} />
           <MiniStat label="Ritme" value={`${streak.ritme30}%`} />
-          <MiniStat label="Zuiver" value={String(purityStreak)} />
+          <MiniStat label="Clean" value={String(purityStreak)} />
         </div>
       </div>
 
       <div className="rounded-card bg-ink-700 divide-y divide-line overflow-hidden">
         <NavRow href="/ik/routine" icon={ListChecks} label="Routine beheren" />
         <NavRow href="/ik/ankers" icon={Anchor} label="Ankers kiezen" />
+        <NavRow href="/ik/zuiverheid" icon={Leaf} label="Clean Soul beheren" />
         <NavRow href="/ik/instellingen" icon={Settings} label="Instellingen" />
       </div>
     </div>

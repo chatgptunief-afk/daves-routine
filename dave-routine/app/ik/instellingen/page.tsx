@@ -9,6 +9,7 @@ import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { DEFAULT_MANUAL_TIMES } from '@/lib/prayerTimes';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { PrayerTimes } from '@/types';
+import { subscribeToPush, unsubscribeFromPush } from '@/lib/push/client';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -44,20 +45,56 @@ export default function InstellingenPage() {
     );
   };
 
-  // Zet, wanneer de gebruiker "Meldingen" aanzet, ook echt browserpermissie om — anders staat
-  // de schakelaar aan terwijl er nooit een melding kan verschijnen. Bij weigering blijft de
-  // schakelaar uit en leggen we in de app-stem uit wat er gebeurde, niet de browser-taal.
+  // Zet, wanneer de gebruiker "Meldingen" aanzet, ook echt browserpermissie + pushabonnement
+  // om — anders staat de schakelaar aan terwijl er nooit iets kan verschijnen. Bij weigering
+  // blijft de schakelaar uit; we vragen daarna niet opnieuw, alleen een rustige uitleg.
   const handleToggleNotifications = async () => {
     const turningOn = !state.settings.notificationsEnabled;
     setNotifError(null);
-    if (turningOn && typeof window !== 'undefined' && 'Notification' in window) {
-      const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-      if (permission !== 'granted') {
-        setNotifError('Geen toestemming gekregen. Zet meldingen aan bij je browser- of systeeminstellingen om dit te gebruiken.');
-        return;
-      }
+
+    if (!turningOn) {
+      updateSettings({ notificationsEnabled: false });
+      await unsubscribeFromPush();
+      return;
     }
-    updateSettings({ notificationsEnabled: turningOn });
+
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      setNotifError('Meldingen worden niet ondersteund in deze browser.');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      setNotifError('Meldingen staan uit voor Dagboog in je browser- of systeeminstellingen. Zet ze daar aan om dit te gebruiken.');
+      return;
+    }
+    const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    if (permission !== 'granted') {
+      setNotifError('Geen toestemming gekregen.');
+      return;
+    }
+
+    updateSettings({ notificationsEnabled: true });
+    const result = await subscribeToPush({
+      prefs: {
+        notificationsEnabled: true,
+        notifMorningEnabled: state.settings.notifMorningEnabled,
+        notifMorningTime: state.settings.notifMorningTime,
+        notifRoutineEnabled: state.settings.notifRoutineEnabled,
+        notifEveningEnabled: state.settings.notifEveningEnabled,
+        notifEveningTime: state.settings.notifEveningTime,
+        notifPrayerEnabled: state.settings.notifPrayerEnabled,
+      },
+      prayer: {
+        prayerTimeSource: state.settings.prayerTimeSource,
+        location: state.settings.location,
+        manualPrayerTimes: state.settings.manualPrayerTimes,
+      },
+      hasAnkers: state.ankerIds.length > 0,
+    });
+    if (!result.ok && result.reason === 'ios-not-installed') {
+      setNotifError("Meldingen werken hier zolang de app open is. Zet Dagboog op je beginscherm (Delen → Zet op beginscherm) voor meldingen ook als de app dicht is.");
+    }
+    // Overige mislukkingen (nog geen VAPID-configuratie, server niet bereikbaar) blijven stil —
+    // de voorgrond-planner vangt het op, en er is niets bruikbaars om de gebruiker over te zeggen.
   };
 
   return (

@@ -44,10 +44,10 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notifications — toont wat de afzender meestuurt. Er is momenteel geen server die hier
-// iets naartoe stuurt (zie NotificationScheduler.tsx voor wat wél al werkt); deze handler is
-// alvast klaar voor zodra dat er is, en toont ondertussen ook lokale showNotification()-aanroepen
-// op dezelfde, kalme manier.
+// Push notifications — toont wat de afzender meestuurt. Twee bronnen sturen hier iets naartoe:
+// app/api/push/send/route.ts (echte achtergrond-push, via Vercel Cron) en, terwijl de app open
+// is, lokale showNotification()-aanroepen vanuit NotificationScheduler.tsx — beide op dezelfde,
+// kalme manier.
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data?.json() || {}; } catch { data = {}; }

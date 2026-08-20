@@ -69,7 +69,7 @@ export default function MuurPage() {
         <div className="flex gap-5 pb-1.5">
           <MiniStat label="Langste" value={String(streak.longest)} />
           <MiniStat label="Ritme" value={`${streak.ritme30}%`} />
-          <MiniStat label="Zuiver" value={String(purityStreak)} />
+          <MiniStat label="Clean" value={String(purityStreak)} />
         </div>
       </div>
 
@@ -104,7 +104,7 @@ export default function MuurPage() {
             <div className="space-y-2 text-[14px]">
               <Row label="Ankers" value={selected.ankersMade ? 'Gemaakt' : selected.recoveryUsed ? 'Hersteld' : 'Gemist'} />
               <Row label="Gebeden" value={`${selected.prayersMade}/5`} />
-              <Row label="Zuiverheid" value={selected.purityHeld === null ? '—' : selected.purityHeld ? 'Vastgehouden' : 'Niet vastgehouden'} />
+              <Row label="Clean Soul" value={selected.purityHeld === null ? '—' : selected.purityHeld ? 'Vastgehouden' : 'Niet vastgehouden'} />
             </div>
             {selected.reflection && (
               <div className="pt-2 border-t border-line">

@@ -399,6 +399,18 @@ export function computePurityStreak(history: DayRecord[]): number {
   return current;
 }
 
+/** Losse, doorlopende streak vóór één specifieke Clean Soul-gewoonte (los van de andere).
+ * Zo breekt een gemiste dag bij "niet roken" niet de streak van "niet negatief praten". */
+export function computeTaskStreak(history: DayRecord[], taskId: string): number {
+  const sorted = [...history].sort((a, b) => (a.date < b.date ? -1 : 1));
+  let current = 0;
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (sorted[i].completedTaskIds.includes(taskId)) current++;
+    else break;
+  }
+  return current;
+}
+
 export function consecutiveMissedDays(history: DayRecord[]): number {
   const sorted = [...history].sort((a, b) => (a.date < b.date ? 1 : -1)); // nieuwste eerst
   let n = 0;

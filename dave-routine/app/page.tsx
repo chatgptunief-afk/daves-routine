@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wind, Moon } from 'lucide-react';
+import Link from 'next/link';
+import { Wind, Moon, Leaf } from 'lucide-react';
 import { useApp } from '@/components/AppStateProvider';
 import { Arc } from '@/components/ui/Arc';
 import { EersteSteenField } from '@/components/ui/EersteSteenField';
 import { GebedGroup } from '@/components/ui/GebedGroup';
 import { PhaseGroup } from '@/components/ui/PhaseGroup';
-import { ZuiverheidField } from '@/components/ui/ZuiverheidField';
+import { CleanSoulGroup } from '@/components/ui/CleanSoulGroup';
 import { GoalChip } from '@/components/ui/GoalChip';
 import { LogSheet } from '@/components/ui/LogSheet';
 import { Dagafsluiting } from '@/components/ui/Dagafsluiting';
@@ -74,9 +75,6 @@ export default function VandaagPage() {
   const completionRatio = app.ankerTasks.length > 0 ? app.ankersCompletedCount / app.ankerTasks.length : 0;
   const dayIsOver = now > timeStringToDate(times.date, times.isha);
 
-  const purityTask = app.zuiverheidTasks[0] ?? null;
-  const displayedPurityStreak = app.purityStreak + (purityTask?.completed ? 1 : 0);
-
   const ochtendTasks = app.ritmeTasks.filter(t => phaseForGroup(t.phase) === 'ochtend');
   const doorlopendTasks = app.ritmeTasks.filter(t => phaseForGroup(t.phase) === 'doorlopend');
   const avondTasks = app.ritmeTasks.filter(t => phaseForGroup(t.phase) === 'avond');
@@ -109,7 +107,14 @@ export default function VandaagPage() {
       <div className="space-y-6">
         <GebedGroup tasks={app.gebedTasks} times={times} now={now} onToggle={toggleTask} />
 
-        <ZuiverheidField task={purityTask} streakDays={displayedPurityStreak} onToggle={toggleTask} />
+        {app.zuiverheidTasks.length > 0 ? (
+          <CleanSoulGroup tasks={app.zuiverheidTasks} streaks={app.zuiverheidStreaks} onToggle={toggleTask} />
+        ) : (
+          <Link href="/ik/zuiverheid" className="tap flex items-center gap-2 text-[13.5px] text-paper-56">
+            <Leaf size={14} strokeWidth={1.75} className="text-grove-400" />
+            Clean Soul instellen
+          </Link>
+        )}
 
         {activeGoals.length > 0 && (
           <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1">

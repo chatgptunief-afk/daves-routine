@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AppState, Task, Goal, LogEntry, PrayerTimes } from '@/types';
 import {
   loadState, saveState, getCompletionPercentage, computeStreak, consecutiveMissedDays,
-  computeDayRecord, computePurityStreak,
+  computeDayRecord, computePurityStreak, computeTaskStreak,
 } from '@/lib/storage';
 import { todayString, weekday } from '@/lib/date';
 import { calculatePrayerTimes, manualToPrayerTimes, DEFAULT_MANUAL_TIMES } from '@/lib/prayerTimes';
@@ -233,6 +233,15 @@ export function useAppState() {
   const missedDaysInARow = useMemo(() => (state ? consecutiveMissedDays(state.history) : 0), [state]);
   const purityStreak = useMemo(() => (state ? computePurityStreak(state.history) : 0), [state]);
 
+  // Eigen, doorlopende streak per Clean Soul-gewoonte — onafhankelijk van elkaar, zodat één
+  // gemiste dag bij de ene gewoonte niet de streak van een ándere gewoonte breekt.
+  const zuiverheidStreaks = useMemo(() => {
+    if (!state) return {};
+    const map: Record<string, number> = {};
+    for (const t of zuiverheidTasks) map[t.id] = computeTaskStreak(state.history, t.id);
+    return map;
+  }, [state, zuiverheidTasks]);
+
   const todayPreview = useMemo(() => (state ? computeDayRecord(state, todayString()) : null), [state]);
 
   return {
@@ -254,6 +263,6 @@ export function useAppState() {
     // afgeleid
     completedCount, totalCount, completionPct,
     gebedTasks, zuiverheidTasks, ritmeTasks,
-    streak, missedDaysInARow, todayPreview, purityStreak,
+    streak, missedDaysInARow, todayPreview, purityStreak, zuiverheidStreaks,
   };
 }

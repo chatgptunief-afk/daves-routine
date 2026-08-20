@@ -1,39 +1,106 @@
-# Meldingen — wat werkt nu, en wat een echte achtergrond-push vereist
+# Meldingen in Dagboog — hoe het werkt, en wat jij nog moet instellen
 
-Dit document hoort bij `components/NotificationScheduler.tsx`, `components/ui/NotificationPrompt.tsx`
-en `public/sw.js`.
+Dit hoort bij:
+- `lib/push/client.ts` — alles wat de browser doet (abonneren, opzeggen, syncen)
+- `lib/push/store.ts` — server-opslag van abonnementen (Redis REST, geen extra package)
+- `app/api/push/subscribe/route.ts`, `app/api/push/unsubscribe/route.ts`, `app/api/push/send/route.ts`
+- `components/NotificationScheduler.tsx` — voorgrond-vangnet + sync
+- `components/ui/NotificationPrompt.tsx` — de eenmalige, zachte vraag
+- `public/sw.js` — ontvangt en toont de push
+- `vercel.json` — de cron-planning
 
-## Wat er nu werkt
+## Wat er nu écht werkt
 
-- Toestemming vragen gebeurt nooit meteen bij het openen van de app. Eén keer, rustig, na
-  onboarding (`NotificationPrompt.tsx`), of wanneer je zelf "Meldingen" aanzet bij Instellingen.
-- Bij Instellingen kun je los aan/uit zetten: Ochtend (met tijd), Ritme, Avond (met tijd), Gebed.
-- Zolang de app open is (of onlangs open is geweest — de meeste browsers laten een geopende
-  achtergrondtab nog even doortikken), controleert `NotificationScheduler.tsx` elke minuut of er
-  op basis van je échte data iets te melden valt:
-  - Ochtend/Avond: alleen op de ingestelde tijd, één keer per dag.
-  - Ritme: alleen als er ankers zijn ingesteld én er nog eentje openstaat, één keer per dag.
-  - Gebed: gebruikt de bestaande gebedstijden-logica (`lib/phase.ts`) — alleen als het gebed nog
-    niet is afgevinkt, één keer per gebed per dag.
-- Elke categorie is een losse voorkeur; geen categorie ooit "aan" zonder dat jij dat koos.
+**Zolang de app open is (of onlangs open was):** alles, altijd — het voorgrond-vangnet in
+`NotificationScheduler.tsx` heeft geen server nodig.
 
-Dit is een **voorgrond-planner**. Hij vuurt vanuit de geopende pagina/geïnstalleerde app zelf.
+**Ook wanneer de app/telefoon dicht is:** dit is nu een échte Web Push-implementatie (geen
+`setTimeout`-trucje) — VAPID-ondertekende, versleutelde pushberichten via de standaard Push API,
+opgeslagen abonnementen server-side, en een Vercel Cron-taak die op tijd verstuurt. Maar dit
+werkt pas zodra jij de onderstaande stappen hebt gedaan — zonder die configuratie valt de app
+automatisch en stil terug op het voorgrond-vangnet (nooit een crash, nooit een nepmelding).
 
-## Wat dit niet is
+### Platformrealiteit — wees hier eerlijk over
+- **Android/Chrome (los of als PWA):** Web Push werkt gewoon, in de achtergrond, zodra je
+  abonneert.
+- **iPhone/Safari:** Web Push bestaat alleen binnen een **op het beginscherm geïnstalleerde**
+  PWA, en alleen vanaf **iOS 16.4**. Gewoon in Safari-tabblad? Dan bestaat de Push API niet —
+  de app detecteert dit (`lib/push/client.ts`, `pushNeedsHomeScreenInstall()`) en valt terug op
+  het voorgrond-vangnet, met een rustige uitleg in de meldingen-sheet.
+- **Desktop Safari/oudere browsers:** afhankelijk van ondersteuning; als `PushManager` ontbreekt,
+  werkt alleen het voorgrond-vangnet — de app blijft gewoon volledig bruikbaar.
 
-Dit is géén achtergrond-melding die ook binnenkomt als het toestel dicht is en de app al een
-tijd niet geopend is. Dat heet Web Push, en vereist een server:
+## Wat jij moet instellen om echte achtergrond-push aan te zetten
 
-1. Een VAPID-sleutelpaar (publieke sleutel in de client, privésleutel alleen op de server).
-2. Een `PushManager.subscribe()`-aanroep in de client die een abonnement oplevert.
-3. Opslag van dat abonnement — dit project heeft geen backend/database (alles staat lokaal via
-   `idb-keyval`/`localStorage`), dus dit vereist een nieuwe voorziening (bv. Vercel KV, Upstash
-   Redis, of een Postgres-tabel).
-4. Een geplande taak (bv. een Vercel Cron Job) die op de juiste momenten de opgeslagen
-   abonnementen doorloopt en een push verstuurt via het `web-push`-package.
+### 1. VAPID-sleutels genereren
+Op je eigen machine (met internet — dit kan niet vanuit deze sessie):
+```
+npx web-push generate-vapid-keys
+```
+Dat geeft een `Public Key` en `Private Key`.
 
-`public/sw.js` heeft al een `push`- en `notificationclick`-handler — die kant is dus klaar.
-Zodra er een server is die er iets naartoe stuurt, werkt de rest meteen mee.
+### 2. Environment variables (Vercel → Project → Settings → Environment Variables)
+| Naam | Waarde | Zichtbaar voor client? |
+|---|---|---|
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | de Public Key hierboven | Ja — moet ook client-side beschikbaar zijn |
+| `VAPID_PRIVATE_KEY` | de Private Key hierboven | **Nee — nooit committen, nooit client-side** |
+| `VAPID_SUBJECT` | `mailto:jouwemail@voorbeeld.com` | Nee |
+| `CRON_SECRET` | een zelfgekozen willekeurige string | Nee — beveiligt `/api/push/send` tegen willekeurige aanroepen |
 
-Dit is bewust niet nagebouwd met een nep-`setTimeout`-systeem dat net doet alsof het écht is.
-Wat hierboven staat werkt vandaag, eerlijk, binnen de grenzen van wat een pure client-app kan.
+En voor de opslag van abonnementen — kies één:
+- **Vercel KV** (via het Vercel dashboard, Storage-tab, "Create Database" → KV): zet automatisch
+  `KV_REST_API_URL` en `KV_REST_API_TOKEN`.
+- **Upstash Redis** (rechtstreeks, of via de Vercel Marketplace-integratie): gebruik dan
+  `UPSTASH_REDIS_REST_URL` en `UPSTASH_REDIS_REST_TOKEN`. `lib/push/store.ts` accepteert beide
+  naamgevingen.
+
+Zonder een van deze twee blijft `/api/push/subscribe` netjes `503 store-not-configured` geven —
+de app crasht niet, meldingen vallen terug op het voorgrond-vangnet.
+
+### 3. `npm install`
+`package.json` bevat nu `web-push` (server) — deze sessie kon zelf geen `npm install` draaien
+(geen registrytoegang in deze sandbox), dus **`package-lock.json` is nog niet bijgewerkt**. Draai
+lokaal, vóór je commit/deploy:
+```
+npm install
+```
+Dit is niet optioneel — zonder deze stap faalt `npm run build` (en mogelijk Vercel's build, als
+die `npm ci` gebruikt en de lockfile niet meer klopt).
+
+### 4. Cron-frequentie
+`vercel.json` plant `/api/push/send` elke 15 minuten. **Controleer dit tegen je Vercel-plan** —
+de toegestane cron-frequentie verschilt per plan en kan sinds mijn laatste kennis gewijzigd zijn;
+kijk in het Vercel-dashboard onder "Cron Jobs" of jouw schema wordt geaccepteerd. Is 15 minuten
+niet toegestaan op jouw plan, verhoog dan het interval in `vercel.json`.
+
+## Hoe testen
+1. Zet alle env vars hierboven in Vercel (en lokaal in `.env.local` voor `npm run dev`).
+2. Open de site, zet meldingen aan via de sheet of Instellingen → permissie wordt gevraagd,
+   `subscribeToPush()` registreert de service worker en stuurt het abonnement naar
+   `/api/push/subscribe`.
+3. Roep handmatig `GET https://<jouw-domein>/api/push/send` aan met header
+   `Authorization: Bearer <CRON_SECRET>` (of laat de eerste cron-tick het doen) — als het
+   ochtend-/avondtijdstip al gepasseerd is voor jouw tijdzone, komt de melding binnen, ook met
+   de site/app dicht.
+4. Check de JSON-respons: `{ ok, checked, sent, skipped, removed }`.
+
+## Opzeggen
+- In de app: "Meldingen" uitzetten bij Instellingen roept `unsubscribeFromPush()` aan — dat
+  verwijdert het abonnement zowel server-side (`/api/push/unsubscribe`) als browser-side.
+- Handmatig: verwijder het veld voor die gebruiker uit de Redis-hash `dagboog:push:subs`, of
+  leeg de hele hash als je alles wil resetten.
+- Automatisch: als een push een 404/410 teruggeeft (abonnement niet meer geldig aan
+  browserzijde — bv. na herinstallatie), verwijdert `/api/push/send` het zelf.
+
+## Bewuste, gedocumenteerde grens
+De "Ritme"-melding kent server-side alleen "heeft de gebruiker ankers ingesteld" (gesynchroniseerd
+bij elke wijziging), niet "staan er dit moment nog ankers open" — die laatste, preciezere check
+gebeurt alleen in het voorgrond-vangnet, omdat de dagelijkse afvinkstatus alleen lokaal op het
+toestel leeft. Gebedsmeldingen vuren daarom bewust ook mét een actief pushabonnement nog lokaal
+door (naast de server-push) — anders zou een net afgevinkt gebed serverside niet overgeslagen
+kunnen worden.
+
+## NEVER
+- Nooit `VAPID_PRIVATE_KEY` in git committen of in een `NEXT_PUBLIC_*`-variabele zetten.
+- Nooit de inhoud van `.env.local` delen — dat bestand staat (en moet blijven staan) in
+  `.gitignore`.
