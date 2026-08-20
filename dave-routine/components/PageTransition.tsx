@@ -25,7 +25,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // lezen/muteren tijdens render is niet toegestaan (breekt onder Strict Mode double-invoke en
   // concurrent rendering, waar een render-pass verworpen kan worden zonder te committen). Dit
   // is het React-erkende patroon voor "state aanpassen tijdens render bij een prop-wijziging" —
-  // idempotent or dezelfde pathname, en de aanroepen hier gebeuren maximaal één keer per
+  // idempotent op dezelfde pathname, en de aanroepen hier gebeuren maximaal één keer per
   // daadwerkelijke pathname-wijziging.
   const [prevPath, setPrevPath] = useState(pathname);
   const [prevIndex, setPrevIndex] = useState(() => tabIndex(pathname));
@@ -40,26 +40,27 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   }
 
   // mode="wait" blijft nodig (geen layout-animaties beschikbaar in de LazyMotion domAnimation-
-  // bundel om twee volle paginas overlappend te positioneren zonder sprong), maar de uitgaande
-  // pagina verdwijnt nu snel en beslist i.p.v. in hetzelfde tempo als de inkomende pagina
-  // instelt — dat asymmetrische ritme, plus een richting die met de tabbalk meebeweegt i.p.v.
-  // een generieke verticale fade, is wat het "hangen" wegneemt.
+  // bundel om twee volle paginas overlappend te positioneren zonder sprong). Eerste poging was
+  // te agressief ingekort (120ms uit / 14px) — dat oogde als een flikkering i.p.v. een bewuste
+  // overgang. Dit is de middenweg: duidelijk zichtbare richting (24px), een uitgaande pagina die
+  // vlot maar niet abrupt verdwijnt, en een inkomende die rustig landt — samen ruim onder de
+  // oude 440ms "hangende" versie, maar niet zo kort dat de beweging niet meer leesbaar is.
   return (
     <AnimatePresence mode="wait" initial={false}>
       <m.div
         key={pathname}
-        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: direction * 14 }}
+        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: direction * 22 }}
         animate={{
           opacity: 1,
           x: 0,
           transition: reduceMotion
-            ? { duration: 0.14 }
-            : { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+            ? { duration: 0.16 }
+            : { duration: 0.23, ease: [0.16, 1, 0.3, 1] },
         }}
         exit={
           reduceMotion
-            ? { opacity: 0, transition: { duration: 0.1 } }
-            : { opacity: 0, x: direction * -14, transition: { duration: 0.12, ease: [0.4, 0, 1, 1] } }
+            ? { opacity: 0, transition: { duration: 0.12 } }
+            : { opacity: 0, x: direction * -22, transition: { duration: 0.15, ease: [0.4, 0, 1, 1] } }
         }
       >
         {children}

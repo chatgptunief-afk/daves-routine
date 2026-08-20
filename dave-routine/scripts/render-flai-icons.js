@@ -8,14 +8,13 @@ const cy = BBOX.y + BBOX.height / 2;
 const MARK = `
 <defs>
   <linearGradient id="bM" gradientUnits="userSpaceOnUse" x1="0" y1="240" x2="248" y2="8">
-    <stop offset="0" stop-color="#7C3AED"/>
-    <stop offset="0.34" stop-color="#4F46E5"/>
-    <stop offset="0.66" stop-color="#2563EB"/>
-    <stop offset="1" stop-color="#22D3EE"/>
+    <stop offset="0" stop-color="#C9752F"/>
+    <stop offset="0.55" stop-color="#E8934A"/>
+    <stop offset="1" stop-color="#F2AC6E"/>
   </linearGradient>
   <linearGradient id="aM" gradientUnits="userSpaceOnUse" x1="0" y1="130" x2="110" y2="104">
-    <stop offset="0" stop-color="#A855F7"/>
-    <stop offset="1" stop-color="#22D3EE"/>
+    <stop offset="0" stop-color="#E8934A"/>
+    <stop offset="1" stop-color="#FFFBF2"/>
   </linearGradient>
   <filter id="gl" filterUnits="userSpaceOnUse" x="-40" y="-40" width="360" height="360">
     <feGaussianBlur stdDeviation="4.5" result="b"/>

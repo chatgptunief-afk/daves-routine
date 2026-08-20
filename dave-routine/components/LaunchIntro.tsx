@@ -32,12 +32,15 @@ function useShouldShowIntro(): boolean {
 }
 
 /**
- * De merk-opening — FLAi's "F die niet stilstaat": sporen lopen de F in, de fast lane licht
- * als laatste op, dan het woordmerk en de pay-off. Toont zich precies één keer per verse sessie
- * (nieuwe tab, of een PWA die koud vanaf het beginscherm start) — nooit opnieuw bij een
- * cliëntside navigatie (de root layout, waar dit in leeft, remount niet tussen pagina's) en
- * nooit opnieuw binnen dezelfde sessie na een harde refresh. Bij prefers-reduced-motion: geen
- * tekenanimatie, geen beweging — alleen een korte, zachte fade met het merk meteen zichtbaar.
+ * De merk-opening — FLAi's "F die niet stilstaat", maar in het licht van Dagboog: dezelfde
+ * amber-gloed en dezelfde tweelaagse lichttechniek als de Boog zelf (arcGradient/lightCore uit
+ * Arc.tsx), niet FLAi's eigen violet-naar-cyaan. De fast lane licht op als hetzelfde licht als
+ * het huidige-moment-punt op de Boog — een bewuste visuele brug tussen de twee merken, geen los
+ * geplakt logo. Toont zich precies één keer per verse sessie (nieuwe tab, of een PWA die koud
+ * vanaf het beginscherm start) — nooit opnieuw bij een cliëntside navigatie (de root layout,
+ * waar dit in leeft, remount niet tussen pagina's) en nooit opnieuw binnen dezelfde sessie na een
+ * harde refresh. Bij prefers-reduced-motion: geen tekenanimatie, geen beweging — alleen een
+ * korte, zachte fade met het merk meteen zichtbaar in eindstaat.
  */
 export function LaunchIntro() {
   const reduceMotion = useReducedMotion();
@@ -56,8 +59,8 @@ export function LaunchIntro() {
 
   useEffect(() => {
     if (!visible) return;
-    const outAt = reduceMotion ? 650 : 1400;
-    const doneAt = reduceMotion ? 950 : 1750;
+    const outAt = reduceMotion ? 650 : 1550;
+    const doneAt = reduceMotion ? 950 : 1900;
     const t1 = setTimeout(() => setFadingOut(true), outAt);
     const t2 = setTimeout(() => setVisible(false), doneAt);
     return () => { clearTimeout(t1); clearTimeout(t2); };
@@ -76,30 +79,43 @@ export function LaunchIntro() {
           transition={{ duration: reduceMotion ? 0.3 : 0.4, ease: EASE }}
           aria-hidden="true"
         >
+          {/* Zelfde warme, ademende gloed als de Atmosphere-laag bij Fajr — het openen van de
+              app als het aanbreken van de dag, niet als een merklogo op een zwart vlak. */}
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 animate-breathe"
             style={{
               background:
-                'radial-gradient(60vw 34vh at 50% 42%, rgba(124,58,237,0.10), transparent 70%),' +
-                'radial-gradient(50vw 26vh at 50% 100%, rgba(34,211,238,0.05), transparent 70%)',
+                'radial-gradient(60vw 34vh at 50% 42%, rgba(232,147,74,0.11), transparent 70%),' +
+                'radial-gradient(55vw 28vh at 50% 102%, rgba(201,117,47,0.08), transparent 72%)',
             }}
           />
 
           <svg width="88" height="88" viewBox="0 0 256 256" className="relative">
             <defs>
+              {/* Zelfde drie amber-stops als arcGradient in Arc.tsx — het merk is getekend met
+                  het licht van de Boog, niet met FLAi's eigen violet-naar-cyaan. */}
               <linearGradient id="li-bM" gradientUnits="userSpaceOnUse" x1="0" y1="240" x2="248" y2="8">
-                <stop offset="0" stopColor="#7C3AED" />
-                <stop offset="0.34" stopColor="#4F46E5" />
-                <stop offset="0.66" stopColor="#2563EB" />
-                <stop offset="1" stopColor="#22D3EE" />
+                <stop offset="0" stopColor="#C9752F" />
+                <stop offset="0.55" stopColor="#E8934A" />
+                <stop offset="1" stopColor="#F2AC6E" />
               </linearGradient>
+              {/* De fast lane is het huidige-moment-licht van de Boog — amber warmend naar de
+                  bijna-witte lightCore-kleur, i.p.v. FLAi's eigen paars-naar-cyaan accent. */}
               <linearGradient id="li-aM" gradientUnits="userSpaceOnUse" x1="0" y1="130" x2="110" y2="104">
-                <stop offset="0" stopColor="#A855F7" />
-                <stop offset="1" stopColor="#22D3EE" />
+                <stop offset="0" stopColor="#E8934A" />
+                <stop offset="1" stopColor="#FFFBF2" />
               </linearGradient>
+              <radialGradient id="li-halo" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FFFBF2" />
+                <stop offset="55%" stopColor="#F5F1E8" />
+                <stop offset="100%" stopColor="#F5F1E8" stopOpacity="0" />
+              </radialGradient>
               <filter id="li-gl" filterUnits="userSpaceOnUse" x="-40" y="-40" width="360" height="360">
                 <feGaussianBlur stdDeviation="4.5" result="b" />
                 <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="li-lightBloom" x="-200%" y="-200%" width="500%" height="500%">
+                <feGaussianBlur stdDeviation="8" />
               </filter>
             </defs>
 
@@ -117,30 +133,30 @@ export function LaunchIntro() {
               <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth={12}>
                 <m.path d="M44 52 H96" stroke="url(#li-bM)"
                   initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.38, ease: EASE }} />
+                  transition={{ duration: 0.4, ease: EASE }} />
                 <m.circle cx={26} cy={52} r={12} fill="none" stroke="url(#li-bM)" strokeWidth={9}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 0.1 }} />
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 0.12 }} />
                 <m.path d="M6 88 H96" stroke="url(#li-aM)" filter="url(#li-gl)"
                   initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.05, ease: EASE }} />
+                  transition={{ duration: 0.42, delay: 0.06, ease: EASE }} />
                 <m.path d="M62 128 H96" stroke="url(#li-bM)"
                   initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.34, delay: 0.14, ease: EASE }} />
+                  transition={{ duration: 0.36, delay: 0.16, ease: EASE }} />
                 <m.path d="M50 206 H62 L86 170 H96" stroke="url(#li-bM)"
                   initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.36, delay: 0.16, ease: EASE }} />
+                  transition={{ duration: 0.38, delay: 0.18, ease: EASE }} />
                 <m.circle cx={26} cy={206} r={12} fill="none" stroke="url(#li-bM)" strokeWidth={9}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 0.24 }} />
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 0.26 }} />
                 <m.path d="M124 192 H164 L184 212 H196" stroke="url(#li-bM)"
                   initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.3, delay: 0.26, ease: EASE }} />
+                  transition={{ duration: 0.32, delay: 0.28, ease: EASE }} />
               </g>
             )}
 
             <m.g
               initial={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: reduceMotion ? 0 : 0.42, delay: reduceMotion ? 0 : 0.2, ease: EASE }}
+              transition={{ duration: reduceMotion ? 0 : 0.44, delay: reduceMotion ? 0 : 0.22, ease: EASE }}
               style={{ transformOrigin: '125px 120px' }}
             >
               <circle cx={214} cy={212} r={13} fill="none" stroke="url(#li-bM)" strokeWidth={9} />
@@ -152,16 +168,23 @@ export function LaunchIntro() {
               <circle cx={110} cy={196} r={10.5} fill="#0A0A0F" />
             </m.g>
 
+            {/* De aankomst van het licht — zelfde tweelaagse techniek als het huidige-moment-punt
+                op de Boog (grote wazige halo + kleine scherpe kern), niet één simpele stip. */}
             {reduceMotion ? (
-              <circle cx={214} cy={212} r={4.5} fill="url(#li-aM)" filter="url(#li-gl)" />
+              <>
+                <circle cx={214} cy={212} r={20} fill="url(#li-halo)" opacity={0.45} filter="url(#li-lightBloom)" />
+                <circle cx={214} cy={212} r={5} fill="#FFFBF2" />
+              </>
             ) : (
-              <m.circle
-                cx={214} cy={212} r={4.5} fill="url(#li-aM)" filter="url(#li-gl)"
-                initial={{ opacity: 0, scale: 0.4 }}
-                animate={{ opacity: 1, scale: [0.4, 1.3, 1] }}
-                transition={{ duration: 0.5, delay: 0.55, ease: EASE }}
+              <m.g
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: 1, scale: [0.3, 1.25, 1] }}
+                transition={{ duration: 0.55, delay: 0.62, ease: EASE }}
                 style={{ transformOrigin: '214px 212px' }}
-              />
+              >
+                <circle cx={214} cy={212} r={20} fill="url(#li-halo)" opacity={0.45} filter="url(#li-lightBloom)" />
+                <circle cx={214} cy={212} r={5} fill="#FFFBF2" />
+              </m.g>
             )}
           </svg>
 
@@ -169,15 +192,14 @@ export function LaunchIntro() {
             className="relative mt-5 flex flex-col items-center gap-3"
             initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.35, delay: reduceMotion ? 0 : 0.65, ease: EASE }}
+            transition={{ duration: reduceMotion ? 0 : 0.35, delay: reduceMotion ? 0 : 0.78, ease: EASE }}
           >
             <svg width="98" height="38" viewBox="-4 -8 282 116">
               <defs>
                 <linearGradient id="li-bW" gradientUnits="userSpaceOnUse" x1="-10" y1="96" x2="272" y2="4">
-                  <stop offset="0" stopColor="#7C3AED" />
-                  <stop offset="0.42" stopColor="#4F46E5" />
-                  <stop offset="0.74" stopColor="#2563EB" />
-                  <stop offset="1" stopColor="#22D3EE" />
+                  <stop offset="0" stopColor="#C9752F" />
+                  <stop offset="0.55" stopColor="#E8934A" />
+                  <stop offset="1" stopColor="#F2AC6E" />
                 </linearGradient>
               </defs>
               <g fill="url(#li-bW)" fillRule="evenodd">

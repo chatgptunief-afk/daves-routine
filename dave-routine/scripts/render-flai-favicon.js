@@ -5,17 +5,16 @@ const html = `<!doctype html><html><head><meta charset="utf-8"/><style>html,body
 <svg id="out" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
 <defs>
   <linearGradient id="bM" gradientUnits="userSpaceOnUse" x1="0" y1="240" x2="248" y2="8">
-    <stop offset="0" stop-color="#7C3AED"/>
-    <stop offset="0.34" stop-color="#4F46E5"/>
-    <stop offset="0.66" stop-color="#2563EB"/>
-    <stop offset="1" stop-color="#22D3EE"/>
+    <stop offset="0" stop-color="#C9752F"/>
+    <stop offset="0.55" stop-color="#E8934A"/>
+    <stop offset="1" stop-color="#F2AC6E"/>
   </linearGradient>
   <linearGradient id="aM" gradientUnits="userSpaceOnUse" x1="0" y1="130" x2="110" y2="104">
-    <stop offset="0" stop-color="#A855F7"/>
-    <stop offset="1" stop-color="#22D3EE"/>
+    <stop offset="0" stop-color="#E8934A"/>
+    <stop offset="1" stop-color="#FFFBF2"/>
   </linearGradient>
 </defs>
-<rect width="512" height="512" rx="14" fill="#0A0A0F"/>
+<rect width="512" height="512" rx="112" fill="#0A0A0F"/>
 <g transform="translate(-1.3,3.8) scale(0.243)">
   <path d="M30 88 H96" stroke="url(#aM)" stroke-width="22" stroke-linecap="round" fill="none"/>
   <path d="M96 40 L196 40 C214 40 228 32 244 16 L210 68 L124 68 L124 114 L196 114 L178 142 L124 142 L124 216 L96 216 Z" fill="url(#bM)" stroke="url(#bM)" stroke-width="7" stroke-linejoin="round"/>
