@@ -66,8 +66,8 @@ export default function WelkomPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col px-6 pt-8 pb-8">
-      <div className="flex items-center gap-3 mb-10">
+    <div className="h-dvh flex flex-col px-6 pt-8 pb-8">
+      <div className="flex items-center gap-3 mb-10 flex-shrink-0">
         {step > 0 ? (
           <button
             onClick={() => goTo(step - 1)}
@@ -90,10 +90,10 @@ export default function WelkomPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
         <AnimatePresence mode="wait" initial={false}>
           {step === 0 && (
-            <m.div key="0" {...slide} className="flex-1 flex flex-col justify-center">
+            <m.div key="0" {...slide} className="flex-1 flex flex-col justify-start pt-6">
               <p className="eyebrow mb-4 text-ember-400">Dagboog</p>
               <p className="font-display text-[32px] text-paper leading-[1.16] mb-4 max-w-[300px]">
                 Van Fajr tot Isha buigt de dag open — en weer dicht.
@@ -106,7 +106,7 @@ export default function WelkomPage() {
           )}
 
           {step === 1 && (
-            <m.div key="1" {...slide} className="flex-1 flex flex-col justify-center">
+            <m.div key="1" {...slide} className="flex-1 flex flex-col justify-start pt-6">
               <p className="eyebrow mb-4 text-dusk-400">De boog van vandaag</p>
               <p className="font-display text-[28px] text-paper leading-[1.2] mb-4 max-w-[300px]">
                 Je dag krijgt vorm rond vijf momenten van gebed.
@@ -126,7 +126,7 @@ export default function WelkomPage() {
           )}
 
           {step === 2 && (
-            <m.div key="2" {...slide} className="flex-1 flex flex-col justify-center">
+            <m.div key="2" {...slide} className="flex-1 flex flex-col justify-start pt-6">
               <p className="eyebrow mb-4 text-ember-400">Wie ben jij</p>
               <p className="font-display text-[28px] text-paper leading-[1.2] mb-7 max-w-[300px]">
                 Hoe mogen we je noemen?
@@ -136,7 +136,7 @@ export default function WelkomPage() {
           )}
 
           {step === 3 && (
-            <m.div key="3" {...slide} className="flex-1 flex flex-col justify-center">
+            <m.div key="3" {...slide} className="flex-1 flex flex-col justify-start pt-6">
               <p className="eyebrow mb-4 text-dusk-400">Wie wil je worden</p>
               <p className="font-display text-[26px] text-paper leading-[1.22] mb-7 max-w-[300px]">
                 Niet wie je vandaag was. Wie je wordt.
@@ -151,7 +151,7 @@ export default function WelkomPage() {
           )}
 
           {step === 4 && (
-            <m.div key="4" {...slide} className="flex-1 flex flex-col justify-center">
+            <m.div key="4" {...slide} className="flex-1 flex flex-col justify-start pt-6">
               <p className="eyebrow mb-4 text-grove-400">De eerste steen</p>
               <p className="font-display text-[26px] text-paper leading-[1.22] mb-2 max-w-[300px]">
                 Kies één ding dat vandaag telt.
@@ -195,7 +195,7 @@ export default function WelkomPage() {
           )}
 
           {step === 5 && (
-            <m.div key="5" {...slide} className="flex-1 flex flex-col justify-center">
+            <m.div key="5" {...slide} className="flex-1 flex flex-col justify-start pt-6">
               <p className="eyebrow mb-4 text-ember-400">Klaar</p>
               <p className="font-display text-[30px] text-paper leading-[1.18] mb-4 max-w-[300px]">
                 Dat is genoeg om te beginnen.
@@ -208,7 +208,7 @@ export default function WelkomPage() {
         </AnimatePresence>
       </div>
 
-      <div className="pt-6">
+      <div className="pt-6 flex-shrink-0">
         {step < TOTAL_STEPS - 1 ? (
           <Button onClick={() => goTo(step + 1)}>Verder</Button>
         ) : (
