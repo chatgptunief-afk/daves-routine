@@ -55,3 +55,8 @@ export function tasksForWeekday(blueprint: Task[], weekdayNum: number): Task[] {
 
 // Aanbevolen default-ankers (max 5) voor een verse installatie — gebruiker past aan in /ik/ankers.
 export const DEFAULT_ANKER_IDS = ['morning-1', 'morning-4', 'evening-5', 'purity-1', 'daily-2'];
+
+// De taak waar het schrijfbare dagplan aan hangt (zie DagPlan.tsx) — alleen gebruikt om op de
+// takenlijst het pen-icoontje bij déze rij te tonen. Als de gebruiker deze taak archiveert of
+// hernoemt, verdwijnt gewoon dat icoontje weer; het dagplan zelf blijft los bruikbaar.
+export const DAY_PLAN_TASK_ID = 'morning-6';

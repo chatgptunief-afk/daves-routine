@@ -106,6 +106,12 @@ export default function MuurPage() {
               <Row label="Gebeden" value={`${selected.prayersMade}/5`} />
               <Row label="Clean Soul" value={selected.purityHeld === null ? '—' : selected.purityHeld ? 'Vastgehouden' : 'Niet vastgehouden'} />
             </div>
+            {selected.dayPlan && (
+              <div className="pt-2 border-t border-line">
+                <p className="eyebrow mb-1.5">Dagplan</p>
+                <p className="text-[15px] text-paper-72 leading-relaxed whitespace-pre-line">{selected.dayPlan}</p>
+              </div>
+            )}
             {selected.reflection && (
               <div className="pt-2 border-t border-line">
                 <p className="eyebrow mb-1.5">Reflectie</p>

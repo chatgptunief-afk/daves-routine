@@ -54,8 +54,21 @@ function sunPosition(jd: number): { declination: number; equation: number } {
   return { declination: decl, equation: eqt };
 }
 
-function sunAngleTime(jd: number, angle: number, lat: number, direction: 'before' | 'after'): number {
-  const { declination: decl, equation: eqt } = sunPosition(jd);
+// `guessHour` is het moment (in lokale uren-op-de-meridiaan) waarop de zon zelf wordt
+// opgezocht — niet de kalenderdag op 00:00. De zonspositie (declinatie, tijdsvereffening)
+// verschuift meetbaar binnen één dag, dus voor Fajr/Isha (ver van de middag) geeft dat op hoge
+// breedtegraad al gauw een paar minuten verschil t.o.v. één vaste dag-jd. `calculatePrayerTimes`
+// roept dit twee keer aan (eerst met een grove gok, dan met het eigen resultaat als betere gok)
+// — dezelfde tweepas-verfijning als praytimes.org, zodat elk tijdstip berekend wordt met de
+// zonpositie die daadwerkelijk bij dat moment hoort.
+function sunAngleTime(
+  jd: number,
+  guessHour: number,
+  angle: number,
+  lat: number,
+  direction: 'before' | 'after'
+): number {
+  const { declination: decl, equation: eqt } = sunPosition(jd + guessHour / 24);
   const noon = fixHour(12 - eqt);
   const cosArg =
     (-sinD(angle) - sinD(decl) * sinD(lat)) / (cosD(decl) * cosD(lat));
@@ -63,10 +76,10 @@ function sunAngleTime(jd: number, angle: number, lat: number, direction: 'before
   return direction === 'before' ? noon - t : noon + t;
 }
 
-function asrTime(jd: number, factor: number, lat: number): number {
-  const { declination: decl } = sunPosition(jd);
+function asrTime(jd: number, guessHour: number, factor: number, lat: number): number {
+  const { declination: decl } = sunPosition(jd + guessHour / 24);
   const angle = -arccotD(factor + tanD(Math.abs(lat - decl)));
-  return sunAngleTime(jd, angle, lat, 'after');
+  return sunAngleTime(jd, guessHour, angle, lat, 'after');
 }
 
 function hourToHHMM(hour: number): string {
@@ -91,14 +104,21 @@ export function calculatePrayerTimes(
   const d = parseDateString(dateStr);
   const jd = julianDay(d.getFullYear(), d.getMonth() + 1, d.getDate()) - coords.lng / (15 * 24);
 
-  const raw = {
-    fajr: sunAngleTime(jd, FAJR_ANGLE, coords.lat, 'before'),
-    sunrise: sunAngleTime(jd, 0.833, coords.lat, 'before'),
-    dhuhr: fixHour(12 - sunPosition(jd).equation),
-    asr: asrTime(jd, ASR_FACTOR, coords.lat),
-    maghrib: sunAngleTime(jd, 0.833, coords.lat, 'after'),
-    isha: sunAngleTime(jd, ISHA_ANGLE, coords.lat, 'after'),
-  };
+  // Grove startgok (uren op de meridiaan) — pas 1 rekent hiermee, pas 2 herrekent alles met de
+  // uitkomst van pas 1 als gok. Twee passen is genoeg: de zonpositie verandert traag genoeg dat
+  // dit al binnen een fractie van een minuut convergeert.
+  let g = { fajr: 5, sunrise: 6.5, dhuhr: 12, asr: 15.5, maghrib: 18, isha: 19.5 };
+  for (let pass = 0; pass < 2; pass++) {
+    g = {
+      fajr: sunAngleTime(jd, g.fajr, FAJR_ANGLE, coords.lat, 'before'),
+      sunrise: sunAngleTime(jd, g.sunrise, 0.833, coords.lat, 'before'),
+      dhuhr: fixHour(12 - sunPosition(jd + g.dhuhr / 24).equation),
+      asr: asrTime(jd, g.asr, ASR_FACTOR, coords.lat),
+      maghrib: sunAngleTime(jd, g.maghrib, 0.833, coords.lat, 'after'),
+      isha: sunAngleTime(jd, g.isha, ISHA_ANGLE, coords.lat, 'after'),
+    };
+  }
+  const raw = g;
 
   const adjust = (h: number) => h + timezoneOffsetHours - coords.lng / 15;
 

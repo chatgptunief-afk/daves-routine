@@ -130,13 +130,36 @@ export default function InstellingenPage() {
         {locError && <p className="text-[12px] text-paper-56">{locError}</p>}
 
         {state.settings.prayerTimeSource === 'manual' && (
-          <div className="pt-2 border-t border-line grid grid-cols-2 gap-3">
-            <TimeField label="Fajr" value={manual.fajr} onChange={v => setManualTime('fajr', v)} />
-            <TimeField label="Zonsopgang" value={manual.sunrise} onChange={v => setManualTime('sunrise', v)} />
-            <TimeField label="Dhuhr" value={manual.dhuhr} onChange={v => setManualTime('dhuhr', v)} />
-            <TimeField label="Asr" value={manual.asr} onChange={v => setManualTime('asr', v)} />
-            <TimeField label="Maghrib" value={manual.maghrib} onChange={v => setManualTime('maghrib', v)} />
-            <TimeField label="Isha" value={manual.isha} onChange={v => setManualTime('isha', v)} />
+          <>
+            {/* Duidelijk maken WAAROM de tijden generiek ogen zolang dit uit staat — dit is
+                precies de verwarring die ontstaat als iemand de locatie-stap in onboarding
+                oversloeg: de tijden hieronder zijn een grove NL/BE-schatting, niet berekend
+                voor een echte plek. */}
+            <p className="text-[12px] text-paper-56 -mt-1">
+              Nu actief: algemene richttijden, niet berekend voor jouw locatie. Zet hierboven
+              &ldquo;Berekend op locatie&rdquo; aan voor nauwkeurige tijden, of vul zelf in:
+            </p>
+            <div className="pt-2 border-t border-line grid grid-cols-2 gap-3">
+              <TimeField label="Fajr" value={manual.fajr} onChange={v => setManualTime('fajr', v)} />
+              <TimeField label="Zonsopgang" value={manual.sunrise} onChange={v => setManualTime('sunrise', v)} />
+              <TimeField label="Dhuhr" value={manual.dhuhr} onChange={v => setManualTime('dhuhr', v)} />
+              <TimeField label="Asr" value={manual.asr} onChange={v => setManualTime('asr', v)} />
+              <TimeField label="Maghrib" value={manual.maghrib} onChange={v => setManualTime('maghrib', v)} />
+              <TimeField label="Isha" value={manual.isha} onChange={v => setManualTime('isha', v)} />
+            </div>
+          </>
+        )}
+
+        {state.settings.prayerTimeSource === 'calculated' && (
+          <div className="pt-2 border-t border-line">
+            <button onClick={requestLocationTimes} className="tap text-[12px] text-ember-400 font-medium">
+              Ververs locatie nu
+            </button>
+            {state.settings.location && (
+              <p className="text-[11px] text-paper-44 mt-1 tnum">
+                {state.settings.location.lat.toFixed(3)}, {state.settings.location.lng.toFixed(3)}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -167,7 +190,7 @@ export default function InstellingenPage() {
                       type="time"
                       value={state.settings.notifMorningTime}
                       onChange={e => updateSettings({ notifMorningTime: e.target.value })}
-                      className="h-9 bg-ink-600 rounded-control border border-line px-2.5 text-paper text-[13px] tnum focus:outline-none focus:border-ember-500/50"
+                      className="h-9 bg-ink-600 rounded-control border border-line px-2.5 text-paper text-[16px] tnum focus:outline-none focus:border-ember-500/50"
                     />
                   )}
                   <ToggleSwitch
@@ -201,7 +224,7 @@ export default function InstellingenPage() {
                       type="time"
                       value={state.settings.notifEveningTime}
                       onChange={e => updateSettings({ notifEveningTime: e.target.value })}
-                      className="h-9 bg-ink-600 rounded-control border border-line px-2.5 text-paper text-[13px] tnum focus:outline-none focus:border-ember-500/50"
+                      className="h-9 bg-ink-600 rounded-control border border-line px-2.5 text-paper text-[16px] tnum focus:outline-none focus:border-ember-500/50"
                     />
                   )}
                   <ToggleSwitch
@@ -255,7 +278,7 @@ function TimeField({ label, value, onChange }: { label: string; value: string; o
         type="time"
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full h-11 bg-ink-600 rounded-control border border-line px-3 text-paper text-[14px] tnum focus:outline-none focus:border-ember-500/50"
+        className="w-full h-11 bg-ink-600 rounded-control border border-line px-3 text-paper text-[16px] tnum focus:outline-none focus:border-ember-500/50"
       />
     </div>
   );

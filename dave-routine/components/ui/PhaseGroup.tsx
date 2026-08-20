@@ -11,9 +11,14 @@ interface PhaseGroupProps {
   ankerIds: string[];
   onToggle: (id: string) => void;
   isCurrentPhase: boolean;
+  // Optioneel: koppelt het pen-icoontje (zie TaskRow) aan één specifieke taak in deze groep —
+  // nu gebruikt voor "Dag plannen" op de Ochtend-groep. Andere groepen laten dit gewoon weg.
+  noteTaskId?: string;
+  hasNote?: boolean;
+  onOpenNote?: () => void;
 }
 
-export function PhaseGroup({ title, tasks, ankerIds, onToggle, isCurrentPhase }: PhaseGroupProps) {
+export function PhaseGroup({ title, tasks, ankerIds, onToggle, isCurrentPhase, noteTaskId, hasNote, onOpenNote }: PhaseGroupProps) {
   const [isOpen, setIsOpen] = useState(isCurrentPhase);
   const [wasCurrentPhase, setWasCurrentPhase] = useState(isCurrentPhase);
   if (isCurrentPhase !== wasCurrentPhase) {
@@ -56,6 +61,8 @@ export function PhaseGroup({ title, tasks, ankerIds, onToggle, isCurrentPhase }:
                   task={task}
                   onToggle={onToggle}
                   isAnker={ankerIds.includes(task.id)}
+                  onOpenNote={task.id === noteTaskId ? onOpenNote : undefined}
+                  hasNote={task.id === noteTaskId ? hasNote : undefined}
                 />
               ))}
             </div>

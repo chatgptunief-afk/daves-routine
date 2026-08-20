@@ -1,5 +1,6 @@
 'use client';
 import { m } from 'framer-motion';
+import { PenLine } from 'lucide-react';
 import { Task } from '@/types';
 import { ICON_MAP, DEFAULT_ICON } from '@/lib/icons';
 import { Check } from './Check';
@@ -10,9 +11,14 @@ interface TaskRowProps {
   onToggle: (id: string) => void;
   domainColorClass?: string; // bv. 'text-ember-500' — kleur van het icoon/vinkje bij voltooiing
   isAnker?: boolean;
+  // Alleen gezet voor taken met een aangehangen schrijfveld (nu: "Dag plannen"). Los knopje
+  // i.p.v. de hele rij herbruiken voor iets anders — tikken op de rij blijft overal afvinken,
+  // dit is puur een extra, duidelijk zichtbare ingang naar het geschreven dagplan.
+  onOpenNote?: () => void;
+  hasNote?: boolean;
 }
 
-export function TaskRow({ task, onToggle, domainColorClass = 'text-ember-500', isAnker = false }: TaskRowProps) {
+export function TaskRow({ task, onToggle, domainColorClass = 'text-ember-500', isAnker = false, onOpenNote, hasNote = false }: TaskRowProps) {
   const Icon = ICON_MAP[task.icon] ?? DEFAULT_ICON;
 
   const handleToggle = useCallback(() => {
@@ -49,6 +55,17 @@ export function TaskRow({ task, onToggle, domainColorClass = 'text-ember-500', i
         </p>
         {task.cue && !task.completed && <p className="text-[12.5px] text-paper-56 mt-0.5 truncate">{task.cue}</p>}
       </div>
+
+      {onOpenNote && (
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onOpenNote(); }}
+          aria-label={hasNote ? 'Dagplan bekijken' : 'Dag plannen'}
+          className="tap -my-2 -mr-1 p-2 rounded-full flex-shrink-0"
+        >
+          <PenLine size={15} strokeWidth={1.75} className={hasNote ? 'text-ember-400' : 'text-paper-44'} />
+        </button>
+      )}
 
       {isAnker && !task.completed && (
         <span className="w-[3px] h-[3px] rounded-full bg-ember-500 flex-shrink-0" aria-hidden="true" />

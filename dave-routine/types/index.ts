@@ -77,6 +77,7 @@ export interface DayRecord {
   prayersMade: number; // 0-5
   purityHeld: boolean | null; // null = geen zuiverheids-anker die dag
   reflection?: string;
+  dayPlan?: string; // wat de gebruiker 's ochtends voor deze dag had gepland, zie DagPlan.tsx
   tomorrowsFirstStoneId?: string | null;
   recoveryUsed?: boolean;
   skippedTaskIds?: string[];
@@ -115,6 +116,9 @@ export interface AppState {
   ankerIds: string[]; // max 5, gekozen in /ik/ankers
   frogTaskId: string | null; // "De Eerste Steen" — gekozen tijdens Dagafsluiting
   pendingReflection: string | null; // reflectiezin uit Dagafsluiting, wacht op de rollover
+  dayPlan: string | null; // vandaags dagplan, geschreven bij de taak "Dag plannen" — vanaf
+  // het moment van schrijven de hele dag zichtbaar/aanpasbaar, en gaat pas bij de eerstvolgende
+  // rollover (middernacht) mee de Muur in als DayRecord.dayPlan. Zie DagPlan.tsx.
   recoveryLastUsedAt: string | null; // datum, voor de 1-gratis-misser-per-30-dagen-regel
   lastCheckinDate: string | null;
   onboardingComplete: boolean;

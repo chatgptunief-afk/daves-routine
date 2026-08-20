@@ -44,7 +44,7 @@ export function Dagafsluiting({ open, onClose, tomorrowTasks, currentFirstStoneI
             onChange={e => setReflection(e.target.value)}
             placeholder="Wat viel je op vandaag..."
             rows={3}
-            className="w-full bg-ink-600 rounded-control border border-line px-4 py-3 text-paper text-[15px] placeholder:text-paper-44 focus:outline-none focus:border-ember-500/50 resize-none"
+            className="w-full bg-ink-600 rounded-control border border-line px-4 py-3 text-paper text-[16px] placeholder:text-paper-44 focus:outline-none focus:border-ember-500/50 resize-none"
           />
         </div>
 

@@ -130,7 +130,7 @@ export default function RoutinePage() {
             <select
               value={form.phase}
               onChange={e => setForm(f => ({ ...f, phase: e.target.value as Phase }))}
-              className="w-full h-[52px] bg-ink-600 rounded-control border border-line px-4 text-paper text-[15px] focus:outline-none focus:border-ember-500/50"
+              className="w-full h-[52px] bg-ink-600 rounded-control border border-line px-4 text-paper text-[16px] focus:outline-none focus:border-ember-500/50"
             >
               {PHASES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>

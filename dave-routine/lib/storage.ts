@@ -40,6 +40,7 @@ export function getDefaultState(): AppState {
     ankerIds: [...DEFAULT_ANKER_IDS],
     frogTaskId: null,
     pendingReflection: null,
+    dayPlan: null,
     recoveryLastUsedAt: null,
     lastCheckinDate: null,
     onboardingComplete: false,
@@ -109,6 +110,7 @@ function validateStructure(raw: AppState): AppState {
   if (!Array.isArray(state.ankerIds)) state.ankerIds = [...DEFAULT_ANKER_IDS];
   if (state.frogTaskId === undefined) state.frogTaskId = null;
   if (state.pendingReflection === undefined) state.pendingReflection = null;
+  if (state.dayPlan === undefined) state.dayPlan = null;
   if (state.recoveryLastUsedAt === undefined) state.recoveryLastUsedAt = null;
   if (state.lastCheckinDate === undefined) state.lastCheckinDate = null;
   if (state.onboardingComplete === undefined) state.onboardingComplete = false;
@@ -282,6 +284,7 @@ export function computeDayRecord(state: AppState, date: string): DayRecord {
     prayersMade,
     purityHeld,
     reflection: state.pendingReflection ?? undefined,
+    dayPlan: state.dayPlan ?? undefined,
     tomorrowsFirstStoneId: state.frogTaskId,
     recoveryUsed: false,
   };
@@ -330,7 +333,7 @@ export function rolloverToToday(prevState: AppState, today: string): AppState {
     // volgende dag: taken resetten volgens weekdag-recurrence, ankerIds blijven
     const nextDate = addDays(cursor, 1);
     const freshTasks = tasksForWeekday(workingState.taskBlueprint, weekday(nextDate));
-    workingState = { ...workingState, todayTasks: freshTasks, lastResetDate: nextDate, pendingReflection: null };
+    workingState = { ...workingState, todayTasks: freshTasks, lastResetDate: nextDate, pendingReflection: null, dayPlan: null };
     cursor = nextDate;
   }
 

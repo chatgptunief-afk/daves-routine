@@ -12,6 +12,7 @@ import { CleanSoulGroup } from '@/components/ui/CleanSoulGroup';
 import { GoalChip } from '@/components/ui/GoalChip';
 import { LogSheet } from '@/components/ui/LogSheet';
 import { Dagafsluiting } from '@/components/ui/Dagafsluiting';
+import { DagPlan } from '@/components/ui/DagPlan';
 import { Herstel } from '@/components/ui/Herstel';
 import { Breathing } from '@/components/ui/Breathing';
 import { MomentOverlay, type MomentContent } from '@/components/ui/MomentOverlay';
@@ -20,17 +21,18 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { useNow } from '@/hooks/useNow';
 import { getCurrentPhase, momentLine } from '@/lib/phase';
 import { dateLabel, addDays, weekday, timeStringToDate } from '@/lib/date';
-import { tasksForWeekday } from '@/lib/tasks';
+import { tasksForWeekday, DAY_PLAN_TASK_ID } from '@/lib/tasks';
 import { Goal, Phase } from '@/types';
 
 export default function VandaagPage() {
   const router = useRouter();
   const app = useApp();
-  const { state, isLoaded, toast, toggleTask, completeDagafsluiting, markCheckinDone, logGoalEntry } = app;
+  const { state, isLoaded, toast, toggleTask, completeDagafsluiting, setDayPlan, markCheckinDone, logGoalEntry } = app;
 
   const now = useNow(30000);
   const [breathingOpen, setBreathingOpen] = useState(false);
   const [dagafsluitingOpen, setDagafsluitingOpen] = useState(false);
+  const [dagPlanOpen, setDagPlanOpen] = useState(false);
   const [logGoal, setLogGoal] = useState<Goal | null>(null);
   const [moment, setMoment] = useState<MomentContent | null>(null);
 
@@ -122,7 +124,16 @@ export default function VandaagPage() {
           </div>
         )}
 
-        <PhaseGroup title="Ochtend" tasks={ochtendTasks} ankerIds={state.ankerIds} onToggle={toggleTask} isCurrentPhase={activeGroup === 'ochtend'} />
+        <PhaseGroup
+          title="Ochtend"
+          tasks={ochtendTasks}
+          ankerIds={state.ankerIds}
+          onToggle={toggleTask}
+          isCurrentPhase={activeGroup === 'ochtend'}
+          noteTaskId={DAY_PLAN_TASK_ID}
+          hasNote={!!state.dayPlan}
+          onOpenNote={() => setDagPlanOpen(true)}
+        />
         <PhaseGroup title="Ritme" tasks={doorlopendTasks} ankerIds={state.ankerIds} onToggle={toggleTask} isCurrentPhase={activeGroup === 'doorlopend'} />
         <PhaseGroup title="Avond" tasks={avondTasks} ankerIds={state.ankerIds} onToggle={toggleTask} isCurrentPhase={activeGroup === 'avond'} />
       </div>
@@ -136,6 +147,12 @@ export default function VandaagPage() {
       </button>
 
       <Breathing open={breathingOpen} onClose={() => setBreathingOpen(false)} />
+      <DagPlan
+        open={dagPlanOpen}
+        onClose={() => setDagPlanOpen(false)}
+        value={state.dayPlan}
+        onSave={setDayPlan}
+      />
       <Dagafsluiting
         open={dagafsluitingOpen}
         onClose={() => setDagafsluitingOpen(false)}

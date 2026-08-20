@@ -103,7 +103,7 @@ export default function DoelenPage() {
             <select
               value={period}
               onChange={e => setPeriod(e.target.value as GoalPeriod)}
-              className="w-full h-[52px] bg-ink-600 rounded-control border border-line px-4 text-paper text-[15px] focus:outline-none focus:border-ember-500/50"
+              className="w-full h-[52px] bg-ink-600 rounded-control border border-line px-4 text-paper text-[16px] focus:outline-none focus:border-ember-500/50"
             >
               {PERIODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>

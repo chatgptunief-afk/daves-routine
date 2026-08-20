@@ -192,6 +192,15 @@ export function useAppState() {
     showToast('Dag afgesloten.');
   }, [updateState, showToast]);
 
+  // ---- Dagplan ----
+
+  // Los van completeDagafsluiting: dit schrijft/overschrijft het dagplan voor VANDAAG, niet
+  // "morgen" — meteen leesbaar en aanpasbaar zolang de dag loopt (zie DagPlan.tsx). Pas bij de
+  // eerstvolgende rollover gaat het als DayRecord.dayPlan de Muur in, net als de reflectie.
+  const setDayPlan = useCallback((text: string) => {
+    updateState(prev => ({ ...prev, dayPlan: text.trim() || null }));
+  }, [updateState]);
+
   // ---- Profiel / instellingen ----
 
   const setUserName = useCallback((name: string) => {
@@ -205,6 +214,35 @@ export function useAppState() {
   const updateSettings = useCallback((patch: Partial<AppState['settings']>) => {
     updateState(prev => ({ ...prev, settings: { ...prev.settings, ...patch }, prayerTimesCache: null }));
   }, [updateState]);
+
+  // Eén stille locatie-verversing vlak na het laden, alleen als gebedstijden al op locatie
+  // berekend worden. `getCurrentPosition` vraagt geen nieuwe toestemming als die er al is — de
+  // browser levert gewoon een verse positie. Zonder dit zou de app voor altijd de coördinaten
+  // van de allereerste keer aanzetten blijven gebruiken, ook nadat de gebruiker verhuisd of
+  // gereisd is. Draait één keer per sessie (niet bij elke state-wijziging), en werkt de opslag
+  // alleen bij als het punt echt is verschoven — anders zou GPS-ruis elke keer onnodig
+  // herberekenen.
+  useEffect(() => {
+    if (!isLoaded || !state || state.settings.prayerTimeSource !== 'calculated') return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
+    let cancelled = false;
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        if (cancelled) return;
+        const next = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        updateState(prev => {
+          const prevLoc = prev.settings.location;
+          const moved = !prevLoc || Math.abs(prevLoc.lat - next.lat) > 0.001 || Math.abs(prevLoc.lng - next.lng) > 0.001;
+          if (!moved) return prev;
+          return { ...prev, settings: { ...prev.settings, location: next }, prayerTimesCache: null };
+        });
+      },
+      () => { /* stil negeren — de laatst bekende locatie blijft gewoon gelden */ },
+      { timeout: 10000, maximumAge: 3600000 }
+    );
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded]);
 
   const toggleNotifications = useCallback(() => {
     updateState(prev => ({ ...prev, settings: { ...prev.settings, notificationsEnabled: !prev.settings.notificationsEnabled } }));
@@ -268,6 +306,8 @@ export function useAppState() {
     addGoal, updateGoal, archiveGoal, logGoalEntry,
     // dagafsluiting
     completeDagafsluiting,
+    // dagplan
+    setDayPlan,
     // profiel
     setUserName, setIdentityStatement, updateSettings, toggleNotifications, completeOnboarding, markCheckinDone,
     // afgeleid
