@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Task } from '@/types';
 import { Sheet } from './Sheet';
 import { Button } from './Button';
@@ -19,9 +19,13 @@ export function Dagafsluiting({ open, onClose, tomorrowTasks, currentFirstStoneI
   const [reflection, setReflection] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(currentFirstStoneId);
 
-  useEffect(() => {
+  // Elke keer dat de sheet opent, de keuze terugzetten op de huidige Eerste Steen — render-time
+  // afgeleide state op de open-overgang i.p.v. een effect (react.dev "Resetting state...").
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) setSelectedId(currentFirstStoneId);
-  }, [open, currentFirstStoneId]);
+  }
 
   const handleSubmit = () => {
     onComplete(reflection.trim(), selectedId);

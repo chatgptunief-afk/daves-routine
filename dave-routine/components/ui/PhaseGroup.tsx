@@ -3,7 +3,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { Task } from '@/types';
 import { TaskRow } from './TaskRow';
 import { ChevronDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface PhaseGroupProps {
   title: string;
@@ -15,10 +15,11 @@ interface PhaseGroupProps {
 
 export function PhaseGroup({ title, tasks, ankerIds, onToggle, isCurrentPhase }: PhaseGroupProps) {
   const [isOpen, setIsOpen] = useState(isCurrentPhase);
-
-  useEffect(() => {
+  const [wasCurrentPhase, setWasCurrentPhase] = useState(isCurrentPhase);
+  if (isCurrentPhase !== wasCurrentPhase) {
+    setWasCurrentPhase(isCurrentPhase);
     if (isCurrentPhase) setIsOpen(true);
-  }, [isCurrentPhase]);
+  }
 
   if (tasks.length === 0) return null;
 

@@ -1,7 +1,7 @@
 'use client';
 import { m } from 'framer-motion';
 import { Task } from '@/types';
-import { getIcon } from '@/lib/icons';
+import { ICON_MAP, DEFAULT_ICON } from '@/lib/icons';
 import { Check } from './Check';
 import { useCallback } from 'react';
 
@@ -13,7 +13,7 @@ interface TaskRowProps {
 }
 
 export function TaskRow({ task, onToggle, domainColorClass = 'text-ember-500', isAnker = false }: TaskRowProps) {
-  const Icon = getIcon(task.icon);
+  const Icon = ICON_MAP[task.icon] ?? DEFAULT_ICON;
 
   const handleToggle = useCallback(() => {
     if (!task.completed) {

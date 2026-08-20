@@ -1,0 +1,27 @@
+name: Verstuur pushmeldingen
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Roep /api/push/send aan
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PUSH_SEND_URL: ${{ vars.PUSH_SEND_URL }}
+        run: |
+          URL="${PUSH_SEND_URL:-https://daves-routine.vercel.app/api/push/send}"
+          echo "Aanroepen: $URL"
+          status=$(curl -s -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "$URL")
+          echo "HTTP status: $status"
+          cat response.json
+          if [ "$status" -ge 400 ]; then
+            echo "::error::/api/push/send gaf status $status terug"
+            exit 1
+          fi

@@ -1,9 +1,35 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 const SESSION_KEY = 'dagboog-intro-shown';
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+// "Moet de intro nu tonen" hangt af van sessionStorage — een extern systeem, niet veilig
+// tijdens SSR. useSyncExternalStore i.p.v. een mount-effect + setState: getSnapshot rekent
+// precies één keer echt uit (en schrijft dan pas naar sessionStorage) en cachet daarna, dus
+// herhaalde aanroepen door React (tearing-checks, re-renders) blijven puur/idempotent.
+const noopSubscribe = () => () => {};
+let cachedShouldShow: boolean | null = null;
+function getShouldShowSnapshot(): boolean {
+  if (cachedShouldShow === null) {
+    try {
+      if (sessionStorage.getItem(SESSION_KEY) === '1') {
+        cachedShouldShow = false;
+      } else {
+        sessionStorage.setItem(SESSION_KEY, '1');
+        cachedShouldShow = true;
+      }
+    } catch {
+      // Privénavigatie o.i.d. — geen harde afhankelijkheid, de intro toont dan gewoon elke keer.
+      cachedShouldShow = true;
+    }
+  }
+  return cachedShouldShow;
+}
+function useShouldShowIntro(): boolean {
+  return useSyncExternalStore(noopSubscribe, getShouldShowSnapshot, () => false);
+}
 
 /**
  * De merk-opening — FLAi's "F die niet stilstaat": sporen lopen de F in, de fast lane licht
@@ -15,18 +41,18 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  */
 export function LaunchIntro() {
   const reduceMotion = useReducedMotion();
+  const shouldShow = useShouldShowIntro();
+  const [hasStarted, setHasStarted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [fadingOut, setFadingOut] = useState(false);
 
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === '1') return;
-      sessionStorage.setItem(SESSION_KEY, '1');
-    } catch {
-      // Privénavigatie o.i.d. — geen harde afhankelijkheid, de intro toont dan gewoon elke keer.
-    }
+  // Render-time afgeleide state, met een aparte "hasStarted"-vlag: shouldShow blijft `true`
+  // voor de rest van de sessie zodra hij dat één keer was, dus zonder deze vlag zou de
+  // hide-timer hieronder (die `visible` terugzet naar false) de intro telkens weer aanzetten.
+  if (shouldShow && !hasStarted) {
+    setHasStarted(true);
     setVisible(true);
-  }, []);
+  }
 
   useEffect(() => {
     if (!visible) return;

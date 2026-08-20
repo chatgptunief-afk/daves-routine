@@ -1,7 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { useRef } from 'react';
+import { useState } from 'react';
 
 // Zelfde volgorde als de TabBar — bepaalt de richting van de slide, niet alleen óf er
 // geanimeerd wordt. Naar rechts in de tabbalk (bv. Vandaag -> Muur) schuift de nieuwe pagina
@@ -20,18 +20,23 @@ function tabIndex(pathname: string): number {
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const prevIndexRef = useRef(tabIndex(pathname));
-  const prevPathRef = useRef(pathname);
 
-  // Puur afgeleid, geen state — bijwerken tijdens render is hier veilig: het is idempotent
-  // (dezelfde pathname geeft altijd dezelfde uitkomst) en triggert zelf geen re-render.
-  let direction = 1;
-  if (pathname !== prevPathRef.current) {
+  // Vorige pathname/index en de afgeleide richting leven in state, niet in een ref: een ref
+  // lezen/muteren tijdens render is niet toegestaan (breekt onder Strict Mode double-invoke en
+  // concurrent rendering, waar een render-pass verworpen kan worden zonder te committen). Dit
+  // is het React-erkende patroon voor "state aanpassen tijdens render bij een prop-wijziging" —
+  // idempotent or dezelfde pathname, en de aanroepen hier gebeuren maximaal één keer per
+  // daadwerkelijke pathname-wijziging.
+  const [prevPath, setPrevPath] = useState(pathname);
+  const [prevIndex, setPrevIndex] = useState(() => tabIndex(pathname));
+  const [direction, setDirection] = useState(1);
+
+  if (pathname !== prevPath) {
     const newIndex = tabIndex(pathname);
-    const diff = newIndex - prevIndexRef.current;
-    direction = diff !== 0 ? Math.sign(diff) : 1;
-    prevIndexRef.current = newIndex;
-    prevPathRef.current = pathname;
+    const diff = newIndex - prevIndex;
+    setDirection(diff !== 0 ? Math.sign(diff) : 1);
+    setPrevIndex(newIndex);
+    setPrevPath(pathname);
   }
 
   // mode="wait" blijft nodig (geen layout-animaties beschikbaar in de LazyMotion domAnimation-

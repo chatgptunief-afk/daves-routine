@@ -26,14 +26,16 @@ export function Check({
   const [showRing, setShowRing] = useState(false);
   const [wasChecked, setWasChecked] = useState(checked);
 
-  useEffect(() => {
-    if (checked && !wasChecked && celebratory) {
-      setShowRing(true);
-      const t = setTimeout(() => setShowRing(false), 420);
-      return () => clearTimeout(t);
-    }
+  if (checked !== wasChecked) {
     setWasChecked(checked);
-  }, [checked, wasChecked, celebratory]);
+    if (checked && celebratory) setShowRing(true);
+  }
+
+  useEffect(() => {
+    if (!showRing) return;
+    const t = setTimeout(() => setShowRing(false), 420);
+    return () => clearTimeout(t);
+  }, [showRing]);
 
   return (
     <span className="relative flex-shrink-0 inline-flex items-center justify-center" style={{ width: size, height: size }}>

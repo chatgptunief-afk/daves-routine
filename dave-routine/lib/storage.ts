@@ -307,7 +307,7 @@ export function rolloverToToday(prevState: AppState, today: string): AppState {
 
   // Sluit elke verstreken dag af met een DayRecord (meestal maar één dag, maar de app
   // moet ook correct zijn na dagen dicht te zijn geweest).
-  let history = [...prevState.history];
+  const history = [...prevState.history];
   let cursor = prevState.lastResetDate;
   let workingState = prevState;
 

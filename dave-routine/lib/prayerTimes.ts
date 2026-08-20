@@ -5,7 +5,7 @@
 // Zie DAVES-ROUTINE-REDESIGN.md §7.3 / Deel 1.
 
 import { PrayerTimes } from '@/types';
-import { formatHHMM, parseDateString } from './date';
+import { parseDateString } from './date';
 
 export interface Coords { lat: number; lng: number; }
 

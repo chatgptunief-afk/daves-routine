@@ -20,8 +20,10 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   'monitor-off': MonitorOff, brain: Brain, 'flower-2': Flower2, mountain: Mountain, compass: Compass,
 };
 
+export const DEFAULT_ICON: LucideIcon = Sparkles;
+
 export function getIcon(name: string): LucideIcon {
-  return ICON_MAP[name] ?? Sparkles;
+  return ICON_MAP[name] ?? DEFAULT_ICON;
 }
 
 export const ICON_PICKER_LIST = Object.keys(ICON_MAP);

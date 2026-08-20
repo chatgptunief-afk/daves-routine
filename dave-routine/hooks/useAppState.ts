@@ -47,13 +47,23 @@ export function useAppState() {
   }, [showToast]);
 
   // Houdt de gebedstijden-cache vers: herberekent zodra de dag verandert (sessie bleef open
-  // over middernacht) of zodra instellingen 'm hebben leeggemaakt. Stopt vanzelf na één pas.
+  // over middernacht) of zodra instellingen 'm hebben leeggemaakt. De setState zit in een echte
+  // callback (setTimeout), niet synchroon in het effect-lichaam — dat is precies het patroon
+  // dat de effect-regels zelf aanraden ("calling setState in a callback function when external
+  // state changes"), en herberekent met de nieuwste `prev` i.p.v. een verouderde closure.
   useEffect(() => {
     if (!state) return;
     const today = todayString();
     if (!state.prayerTimesCache || state.prayerTimesCache.date !== today) {
-      const times = resolvePrayerTimes(state);
-      setState(prev => (prev ? { ...prev, prayerTimesCache: times } : prev));
+      const t = setTimeout(() => {
+        setState(prev => {
+          if (!prev) return prev;
+          const todayNow = todayString();
+          if (prev.prayerTimesCache && prev.prayerTimesCache.date === todayNow) return prev;
+          return { ...prev, prayerTimesCache: resolvePrayerTimes(prev) };
+        });
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [state]);
 

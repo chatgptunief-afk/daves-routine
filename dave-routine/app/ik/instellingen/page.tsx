@@ -30,7 +30,7 @@ export default function InstellingenPage() {
     updateSettings({ manualPrayerTimes: { ...manual, [key]: value } });
   };
 
-  const useLocation = () => {
+  const requestLocationTimes = () => {
     setLocError(null);
     if (!('geolocation' in navigator)) { setLocError('Locatie niet beschikbaar op dit apparaat.'); return; }
     navigator.geolocation.getCurrentPosition(
@@ -124,7 +124,7 @@ export default function InstellingenPage() {
           </div>
           <ToggleSwitch
             checked={state.settings.prayerTimeSource === 'calculated'}
-            onChange={checked => (checked ? useLocation() : updateSettings({ prayerTimeSource: 'manual' }))}
+            onChange={checked => (checked ? requestLocationTimes() : updateSettings({ prayerTimeSource: 'manual' }))}
           />
         </div>
         {locError && <p className="text-[12px] text-paper-56">{locError}</p>}

@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useApp } from './AppStateProvider';
+import { useNow } from '@/hooks/useNow';
 import { getCurrentAtmosphere, type Atmosphere as AtmospherePhase } from '@/lib/phase';
 
 // Zeven sferen — de achtergrond IS de klok. Elke sfeer combineert een horizon-gloed met een
@@ -46,15 +46,7 @@ const ATMOSPHERES: Record<AtmospherePhase, { base: string; light: string }> = {
 export function Atmosphere() {
   const { state } = useApp();
   const reduceMotion = useReducedMotion();
-  const [now, setNow] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 60000);
-    const onFocus = () => setNow(new Date());
-    window.addEventListener('focus', onFocus);
-    return () => { clearInterval(id); window.removeEventListener('focus', onFocus); };
-  }, []);
+  const now = useNow(60000, true);
 
   const times = state?.prayerTimesCache;
   const atmosphere: AtmospherePhase = now && times ? getCurrentAtmosphere(now, times) : 'nacht';

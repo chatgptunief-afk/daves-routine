@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { useApp } from '@/components/AppStateProvider';
@@ -28,11 +28,32 @@ export default function RoutinePage() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyForm());
 
+  const ritmeTasks = useMemo(
+    () => state
+      ? state.taskBlueprint.filter(t => t.domain === 'ritme' && !t.archivedAt).sort((a, b) => a.order - b.order)
+      : [],
+    [state]
+  );
+
+  const close = useCallback(() => { setEditing(null); setCreating(false); }, []);
+
+  const handleSave = useCallback(() => {
+    if (!state || !form.title.trim()) return;
+    if (editing) {
+      updateTask(editing.id, { title: form.title.trim(), cue: form.cue.trim() || undefined, phase: form.phase, icon: form.icon, days: form.days });
+    } else {
+      const order = Math.max(0, ...ritmeTasks.filter(t => t.phase === form.phase).map(t => t.order)) + 1;
+      addTask({
+        id: `task-${Date.now()}`, title: form.title.trim(), cue: form.cue.trim() || undefined,
+        domain: 'ritme', phase: form.phase, tier: 'ritme', icon: form.icon, days: form.days, order,
+      });
+    }
+    close();
+  }, [state, form, editing, updateTask, addTask, ritmeTasks, close]);
+
   if (!isLoaded || !state) {
     return <LoadingState />;
   }
-
-  const ritmeTasks = state.taskBlueprint.filter(t => t.domain === 'ritme' && !t.archivedAt).sort((a, b) => a.order - b.order);
 
   const openEdit = (task: Task) => {
     setEditing(task);
@@ -45,24 +66,8 @@ export default function RoutinePage() {
     setCreating(true);
   };
 
-  const close = () => { setEditing(null); setCreating(false); };
-
   const toggleDay = (d: number) => {
     setForm(f => ({ ...f, days: f.days.includes(d) ? f.days.filter(x => x !== d) : [...f.days, d].sort() }));
-  };
-
-  const handleSave = () => {
-    if (!form.title.trim()) return;
-    if (editing) {
-      updateTask(editing.id, { title: form.title.trim(), cue: form.cue.trim() || undefined, phase: form.phase, icon: form.icon, days: form.days });
-    } else {
-      const order = Math.max(0, ...ritmeTasks.filter(t => t.phase === form.phase).map(t => t.order)) + 1;
-      addTask({
-        id: `task-${Date.now()}`, title: form.title.trim(), cue: form.cue.trim() || undefined,
-        domain: 'ritme', phase: form.phase, tier: 'ritme', icon: form.icon, days: form.days, order,
-      });
-    }
-    close();
   };
 
   const handleDelete = () => {

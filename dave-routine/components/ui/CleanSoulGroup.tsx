@@ -1,6 +1,6 @@
 'use client';
 import { Task } from '@/types';
-import { getIcon } from '@/lib/icons';
+import { ICON_MAP, DEFAULT_ICON } from '@/lib/icons';
 import { Check } from './Check';
 import { useCallback } from 'react';
 
@@ -36,7 +36,7 @@ export function CleanSoulGroup({ tasks, streaks, onToggle }: CleanSoulGroupProps
 function CleanSoulRow({
   task, streakDays, onToggle,
 }: { task: Task; streakDays: number; onToggle: (id: string) => void }) {
-  const Icon = getIcon(task.icon);
+  const Icon = ICON_MAP[task.icon] ?? DEFAULT_ICON;
   const displayStreak = streakDays + (task.completed ? 1 : 0);
 
   const handleToggle = useCallback(() => {

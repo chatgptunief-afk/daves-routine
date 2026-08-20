@@ -16,9 +16,9 @@ interface EersteSteenFieldProps {
 export function EersteSteenField({ task, onToggle, dayIsOver }: EersteSteenFieldProps) {
   const reduceMotion = useReducedMotion();
   const [showBloom, setShowBloom] = useState(false);
-  if (!task) return null;
 
   const handleToggle = useCallback(() => {
+    if (!task) return;
     if (!task.completed) {
       setShowBloom(true);
       setTimeout(() => setShowBloom(false), 1100);
@@ -26,6 +26,8 @@ export function EersteSteenField({ task, onToggle, dayIsOver }: EersteSteenField
     }
     onToggle(task.id);
   }, [task, onToggle]);
+
+  if (!task) return null;
 
   return (
     <div className="relative">

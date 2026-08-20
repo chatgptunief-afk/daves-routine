@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Wind, Moon, Leaf } from 'lucide-react';
@@ -17,6 +17,7 @@ import { Breathing } from '@/components/ui/Breathing';
 import { MomentOverlay, type MomentContent } from '@/components/ui/MomentOverlay';
 import { Toast } from '@/components/ui/Toast';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { useNow } from '@/hooks/useNow';
 import { getCurrentPhase, momentLine } from '@/lib/phase';
 import { dateLabel, addDays, weekday, timeStringToDate } from '@/lib/date';
 import { tasksForWeekday } from '@/lib/tasks';
@@ -27,29 +28,26 @@ export default function VandaagPage() {
   const app = useApp();
   const { state, isLoaded, toast, toggleTask, completeDagafsluiting, markCheckinDone, logGoalEntry } = app;
 
-  const [now, setNow] = useState<Date | null>(null);
+  const now = useNow(30000);
   const [breathingOpen, setBreathingOpen] = useState(false);
   const [dagafsluitingOpen, setDagafsluitingOpen] = useState(false);
   const [logGoal, setLogGoal] = useState<Goal | null>(null);
   const [moment, setMoment] = useState<MomentContent | null>(null);
-  const wasAllDone = useRef(false);
 
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(id);
-  }, []);
+  // Render-time afgeleide state i.p.v. een ref + effect: React ondersteunt setState tijdens
+  // render expliciet voor "state aanpassen bij een prop-wijziging" (react.dev/learn/you-might-
+  // not-need-an-effect), en het voorkomt de renderfase-ref-mutatie die hiervoor stond.
+  const [wasAllDone, setWasAllDone] = useState(false);
+  if (app.allAnkersDone !== wasAllDone) {
+    setWasAllDone(app.allAnkersDone);
+    if (app.allAnkersDone) {
+      setMoment({ number: `${app.streak.current + 1}`, line: 'Alle ankers staan. De dag is gemaakt.' });
+    }
+  }
 
   useEffect(() => {
     if (isLoaded && state && !state.onboardingComplete) router.replace('/welkom');
   }, [isLoaded, state, router]);
-
-  useEffect(() => {
-    if (app.allAnkersDone && !wasAllDone.current) {
-      setMoment({ number: `${app.streak.current + 1}`, line: 'Alle ankers staan. De dag is gemaakt.' });
-    }
-    wasAllDone.current = app.allAnkersDone;
-  }, [app.allAnkersDone, app.streak.current]);
 
   if (!isLoaded || !state || !now || !state.prayerTimesCache) {
     return <LoadingState />;

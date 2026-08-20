@@ -78,7 +78,7 @@ export function NotificationPrompt() {
         </p>
         {needsHomeScreen && (
           <p className="text-[12.5px] text-paper-44 leading-relaxed mb-4 max-w-[280px]">
-            Voor meldingen ook terwijl Dagboog dicht is: zet 'm eerst op je beginscherm via
+            Voor meldingen ook terwijl Dagboog dicht is: zet &apos;m eerst op je beginscherm via
             Delen → Zet op beginscherm.
           </p>
         )}
